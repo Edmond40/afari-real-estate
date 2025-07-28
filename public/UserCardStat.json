@@ -1,0 +1,28 @@
+{
+    "userCardStat": [
+        {
+            "Title": "Active Listings",
+            "Users": 4
+        },
+        {
+            "Title": "Favorities",
+            "Users": 10
+        },
+        {
+            "Title": "Messages",
+            "Users": 2
+        },
+        {
+            "Title": "Total Views",
+            "Users": 9
+        },
+        {
+            "Title": "Appointments",
+            "Users": 2
+        },
+        {
+            "Title": "Notifications",
+            "Users": 2
+        }
+    ]
+}

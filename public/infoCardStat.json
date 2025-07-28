@@ -1,0 +1,20 @@
+{
+    "infoCards": [
+        {
+            "Title": "Total Users",
+            "Users": "2"
+        },
+        {
+            "Title": "Total Properties",
+            "Users": "6"
+        },
+        {
+            "Title": "Active Listings",
+            "Users": "2"
+        },
+        {
+            "Title": "Total Admins",
+            "Users": "2"
+        }
+    ]
+}

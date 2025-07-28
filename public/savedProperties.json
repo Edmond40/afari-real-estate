@@ -1,0 +1,33 @@
+{
+    
+    "savedProperties": [
+        {   
+            "id": 1,
+            "Title": "Product1",
+            "Price": 100000,
+            "Location": "Accra",
+            "Image": "/src/assets/images//pool-holiday-leisure-hotel-blue.jpg"
+        },
+        {
+            "id": 2,
+            "Title": "Product2",
+            "Price": 200000,
+            "Location": "Kumasi",
+            "Image": "/src/assets/images/photorealistic-house-with-wooden-architecture-timber-structure.jpg "
+        },
+        {
+            "id": 3,
+            "Title": "Product3",
+            "Price": 400000,
+            "Location": "Kumasi",
+            "Image": "/src/assets/images/colonial-style-house-night-scene.jpg"
+        },
+        {
+            "id": 4,
+            "Title": "Product4",
+            "Price": 500000,
+            "Location": "Accra",
+            "Image": "/src/assets/images/bg2.jpg"
+        }
+    ]
+}
