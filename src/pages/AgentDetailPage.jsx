@@ -10,7 +10,7 @@ function AgentDetailPage(){
     const [agent, setAgent] = useState(null)
 
     function handleSubmit(e){
-        e.target.name
+        e.preventDefault();
     }
 
     useEffect(() => {
