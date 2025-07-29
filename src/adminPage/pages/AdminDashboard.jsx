@@ -2,7 +2,7 @@ import InfoCards from "../data/InfoCards";
 import PropertiesCard from "../data/PropertiesChart";
 
 
-function AdminDashboard(props){
+function AdminDashboard(){
 
 
     return(

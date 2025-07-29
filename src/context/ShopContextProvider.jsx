@@ -1,9 +1,8 @@
+import { useState } from "react";
 import { agentInfo } from "../agentInfo/AgentInfo";
-import { createContext, useState } from "react";
-import { properties as initialProperties } from '../propertiesInfo/propertiesInfo'
+import { properties as initialProperties } from '../propertiesInfo/propertiesInfo';
 import { aboutCard } from "../Cards/AboutCard";
-
-export const ShopContext = createContext();
+import { ShopContext } from "./ShopContext";
 
 const ShopContextProvider = (props) => {
     const currency = '$';
@@ -69,10 +68,12 @@ const ShopContextProvider = (props) => {
             }
         ]);
     }
+    
     // Edit user
     function editUser(updatedUser) {
         setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
     }
+    
     // Delete user
     function deleteUser(id) {
         setUsers(prev => prev.filter(u => u.id !== id));
@@ -91,7 +92,7 @@ const ShopContextProvider = (props) => {
         }
 
         if(category && category !== 'Any'){
-            filtered = filtered.filter(p => p.category === category)
+            filtered = filtered.filter(p => p.category === category);
         }
 
         if (priceRange && priceRange !== 'AnyPrice') {
@@ -152,13 +153,13 @@ const ShopContextProvider = (props) => {
         addUser,
         editUser,
         deleteUser
-    }
+    };
 
-    return(
+    return (
         <ShopContext.Provider value={value}>
             {props.children}
         </ShopContext.Provider>
-    )
-}
+    );
+};
 
 export default ShopContextProvider;

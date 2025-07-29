@@ -24,7 +24,7 @@ function Header() {
 
             {/* links */}
             <div className='hidden md:flex gap-3 font-semibold text-gray-600'>
-                <NavLink to="/" className='hover:text-gray-700 duration-300'>
+                <NavLink to="/" className='hover:text-gray-700 duration-300 active'>
                     <p>Home</p>
                     <hr className='bg-blue-500 w-4/5 mx-auto h-[2px] rounded-full border-none scale-0 duration-500'></hr>
                 </NavLink>
@@ -62,8 +62,8 @@ function Header() {
                         </div>
                     ) : (
                         <div>
-                            <Link to="/sign-up" className='cursor-pointer'>Sign Up</Link>
-                            <Link to="/log-in" className='cursor-pointer ml-2'>Sign In</Link>
+                            <Link to="/signup" className='cursor-pointer'>Sign Up</Link>
+                            <Link to="/login" className='cursor-pointer ml-2'>Sign In</Link>
                         </div>
                     )
                 }

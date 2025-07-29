@@ -1,11 +1,1 @@
-
-a.active hr{
-    scale: 1;
-}
-
-
-@media (max-width:640px) {
-    a.active hr{
-        scale: 1;
-    }
-}
+@import "tailwindcss";
