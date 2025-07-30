@@ -1,17 +1,17 @@
-const sharp = require('sharp');
-const fs = require('fs');
-const path = require('path');
-const { promisify } = require('util');
-const readdir = promisify(fs.readdir);
-const stat = promisify(fs.stat);
-const mkdir = promisify(fs.mkdir);
+import sharp from 'sharp';
+import { promises as fs } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const inputDir = path.join(__dirname, '../src/assets/images');
 const outputDir = path.join(__dirname, '../public/optimized-images');
 
 async function ensureDir(dir) {
   try {
-    await mkdir(dir, { recursive: true });
+    await fs.mkdir(dir, { recursive: true });
   } catch (err) {
     if (err.code !== 'EEXIST') throw err;
   }
@@ -24,8 +24,8 @@ async function optimizeImage(filePath) {
   
   try {
     await sharp(filePath).webp({ quality: 80 }).toFile(outputPath);
-    const originalSize = (await stat(filePath)).size;
-    const optimizedSize = (await stat(outputPath)).size;
+    const originalSize = (await fs.stat(filePath)).size;
+    const optimizedSize = (await fs.stat(outputPath)).size;
     return {
       file: fileName,
       original: `${(originalSize / 1024).toFixed(2)}KB`,
@@ -40,7 +40,7 @@ async function optimizeImage(filePath) {
 
 async function main() {
   await ensureDir(outputDir);
-  const files = (await readdir(inputDir))
+  const files = (await fs.readdir(inputDir))
     .filter(f => ['.jpg', '.jpeg', '.png'].includes(path.extname(f).toLowerCase()));
   
   console.log(`\n🔄 Optimizing ${files.length} images...\n`);
@@ -58,3 +58,4 @@ async function main() {
 }
 
 main().catch(console.error);
+
