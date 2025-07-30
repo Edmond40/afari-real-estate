@@ -14,11 +14,7 @@ function AdminSidebar({ showLabels, sidebarOpen, setSidebarOpen }) {
       ></div>
       {/* Sidebar - always fixed, animated slide/fade on mobile and width/labels on desktop */}
       <div
-        className={`fixed top-0 left-0 z-50 bg-slate-800 p-5 gap-3 text-white h-screen flex flex-col
-          transition-all duration-500 ease-in-out
-          ${sidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}
-          md:translate-x-0 md:opacity-100
-        `}
+        className={`fixed top-0 left-0 z-50 bg-slate-800 p-5 gap-3 text-white h-screen flex flex-col transition-all duration-500 ease-in-out ${sidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'} md:translate-x-0 md:opacity-100`}
         style={{ width: showLabels ? '14rem' : '8rem', maxWidth: '90vw', transitionProperty: 'width, transform, opacity' }}
       >
         {/* Close button for mobile */}

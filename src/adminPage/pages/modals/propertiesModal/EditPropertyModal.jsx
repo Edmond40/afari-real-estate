@@ -1,5 +1,5 @@
 import { SquarePen, X } from "lucide-react";
-import { motion } from 'framer-motion'
+// import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react';
 
 function EditPropertyModal({onClose, property, onEditProperty}){
@@ -98,7 +98,7 @@ function EditPropertyModal({onClose, property, onEditProperty}){
 
     return(
         <div className="fixed inset-0 backdrop-brightness-50 flex items-center justify-center z-50 overflow-auto top-0 bottom-0 pt-52" onClick={onClose}>
-            <motion.div className="bg-white shadow p-8 w-full md:w-1/2 mx-auto rounded-lg p-4 text-gray-900 mt-52 mb-5" 
+            <motion.div className="bg-white shadow md:p-8 w-full md:w-1/2 mx-auto rounded-lg p-4 text-gray-900 mt-52 mb-5" 
                 initial={{ opacity: 0, x: 100 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6 }}

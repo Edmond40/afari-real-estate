@@ -14,7 +14,7 @@ function AdminNavbar({ setShowLabels, showLabels, setSidebarOpen }) {
     <div className="flex justify-between items-center p-5 shadow-md sticky top-0 bg-gray-50 transition-all duration-500 z-30">
       {/* Hamburger menu for mobile */}
       <button className="md:hidden mr-2" onClick={() => setSidebarOpen(true)}>
-        <Menu size={28} />
+        <Menu size={28} className='cursor-pointer'/>
       </button>
       {/* Collapse/expand button for desktop */}
       <PanelLeftClose size={20} onClick={() => setShowLabels((prev) => !prev)} className="cursor-pointer hidden md:inline" />

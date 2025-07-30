@@ -93,8 +93,8 @@ function LogIn() {
     }
 
     return (
-        <div className="min-h-screen w-full flex justify-center items-center">
-            <div className="shadow-sm rounded-md flex flex-col gap-5 w-[400px] p-8">
+        <div className="min-h-screen md:w-[90%] lg:w-[60%] mx-auto flex justify-center items-center p-3">
+            <div className="shadow-md rounded-md flex flex-col gap-5 md:w-[70%] lg:w-[60%] mx-auto w-[90%] p-4 bg-gray-100">
                 <h2 className="text-2xl font-semibold text-center">Login</h2>
                 <button onClick={handleGoogleLogin} disabled={loading} type="button" className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600 duration-300 disabled:opacity-50 disabled:cursor-not-allowed mb-2">
                     {loading ? 'Loading...' : 'Continue with Google'}
@@ -123,7 +123,7 @@ function LogIn() {
                     </button>
                     {success && <div className="text-green-600 text-center text-sm">{success}</div>}
                 </form>
-                <p className="text-center text-sm">Don't have an account? <a href="/sign-up" className="text-blue-500 hover:underline duration-300">Sign Up</a></p>
+                <p className="text-center text-sm">Don't have an account? <a href="/signup" className="text-blue-500 hover:underline duration-300">Sign Up</a></p>
             </div>
         </div>
     );
