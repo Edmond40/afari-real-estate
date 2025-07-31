@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext,  useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import PropertyCard from '../Cards/PropertyCard';
@@ -34,13 +34,9 @@ function PropertiesPage(){
             propertyType: 'AllTypes',
             priceRange: 'AnyPrice',
             sortBy: 'default',
-            category: 'any'
+            category: 'Any'
         });
     };
-
-    useEffect(() => {
-        setFilters(filters)
-    },[filters])
 
     return(
         <div className="min-h-screen bg-gray-50">

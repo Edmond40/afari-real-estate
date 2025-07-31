@@ -1,8 +1,17 @@
 import { DoorOpen, X } from 'lucide-react';
 import { AdminNavLinks } from '../../adminData/AdminNavLinks';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from "react-router-dom";
+import { getAuth, signOut } from "firebase/auth";
 
 function AdminSidebar({ showLabels, sidebarOpen, setSidebarOpen }) {
+  const auth = getAuth();
+  const navigate = useNavigate(); 
+  const user = auth.currentUser;
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/admin/login")
+  }
   // Sidebar for desktop (md+) and overlay for mobile
   return (
     <>
@@ -51,7 +60,7 @@ function AdminSidebar({ showLabels, sidebarOpen, setSidebarOpen }) {
           ))}
         </div>
         {/* Logout */}
-        <div className="flex justify-center gap-2 mt-16 items-center py-3 hover:bg-red-700 text-gray-300 hover:text-red-100 hover:scale-110 duration-300 rounded-lg cursor-pointer">
+        <div className="flex justify-center gap-2 mt-16 items-center py-3 hover:bg-red-700 text-gray-300 hover:text-red-100 hover:scale-110 duration-300 rounded-lg cursor-pointer" onClick={handleLogout}>
           <DoorOpen />
           <span
             className={`transition-opacity duration-500 ${showLabels ? 'opacity-100 ml-2' : 'opacity-0 ml-0'}`}
