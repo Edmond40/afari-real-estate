@@ -41,7 +41,7 @@ function PropertiesDetailRelated(){
     return(
         <div>
             {relatedProperties.length > 0 && (
-                <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="bg-white rounded-lg shadow-md p-6" data-aos="fade-right">
                     <h2 className="text-2xl font-semibold text-gray-900 mb-4">Similar Properties</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {relatedProperties.map((relatedProperty, index) => (

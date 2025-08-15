@@ -33,7 +33,7 @@ function PropertiesImage(){
 
     return(
         <div>
-            <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+            <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8" data-aos="fade-right">
             <div className="relative h-96">
                 <img
                     src={propertyImages[activeImage]}
@@ -68,7 +68,7 @@ function PropertiesImage(){
             </div>
 
             {/* Property Description */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8" data-aos="flip-down">
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">Description</h2>
                 <p className="text-gray-700 leading-relaxed">
                     This beautiful {property.propertyType.toLowerCase()} is located in the heart of {property.location}. 

@@ -111,7 +111,7 @@ function AgentGallery(){
                                                 setColor(prev => !prev)
                                                 toast.success('Property Saved to Favorite Successfully!')
                                             }}>
-                                        <HeartIcon size={20} className={`text-gray-300 ${heartColor ? 'text-red-500 hover:scale-110 duration-300' : 'text-gray-300'}`}/>
+                                            <HeartIcon size={20} className={`text-gray-300 ${heartColor ? 'text-red-500 hover:scale-110 duration-300' : 'text-gray-300'}`}/>
                                         </button>
                                     </div>
                                 </div>

@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { useContext, useState } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { toast } from "react-toastify";
+import { addFavorite } from "../lib/favorites";
+import { addToViewingHistory } from "../lib/history";
 
 function ProductItem({ id, name, image, price, category, bestSeller, bedrooms,bathrooms, area, location, propertyType,AgentName,AgentImage,AgentStatus,AgentEmail,AgentNumber }){
 
@@ -17,7 +19,7 @@ function ProductItem({ id, name, image, price, category, bestSeller, bedrooms,ba
     }
 
     return(
-        <div className="bg-white shadow-sm rounded-md h-full relative overflow-hidden transition-shadow duration-300 group">
+        <div className="bg-white shadow-sm rounded-md h-full relative overflow-hidden transition-shadow duration-300 group" data-aos="zoom-in">
             <div className="overflow-hidden">
                 <img src={image} alt={name} className="w-full h-60 object-cover group-hover:scale-105 transition-transform duration-300"/>
             </div>
@@ -100,12 +102,14 @@ function ProductItem({ id, name, image, price, category, bestSeller, bedrooms,ba
                         <Link
                             to={`/properties-detail-page/${id}`}
                             className="flex-1 bg-blue-600 text-white text-center py-2 px-4 rounded-md hover:bg-blue-700 transition-colors duration-200 font-medium"
+                            onClick={() => addToViewingHistory(id)}
                         >
                             View Details
                         </Link>
                         <button className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-200 cursor-pointer" onClick={()=> 
                             {   
                                 setColor(prev => !prev) 
+                                // addFavorite(id);
                                 toast.success('Property Saved to Favorite Successfully!')                                
                            }}>
                         <HeartIcon size={20} className={`text-gray-300 ${heartColor ? 'text-red-500 hover:scale-110 duration-300' : 'text-gray-300'}`}/>

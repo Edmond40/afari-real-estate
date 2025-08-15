@@ -8,7 +8,7 @@ function AgentItem({id, AgentName, AgentImage, AgentStatus, AgentEmail, Location
 
 
     return(
-        <div className="bg-white w-full w-full flex flex-col gap-4 shadow-sm rounded-md h-full relative overflow-hidden p-4 hover:-translate-y-4 duration-500">
+        <div className="bg-white w-full w-full flex flex-col gap-4 shadow-sm rounded-md h-full relative overflow-hidden p-4 hover:-translate-y-4 duration-500" data-aos="fade-right">
             <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-4">
                     <img src={AgentImage} alt={AgentName} className="w-20 h-20 rounded-full object-cover"/>

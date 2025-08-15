@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
 
 function LogIn() {
     const [form, setForm] = useState({
@@ -43,10 +44,19 @@ function LogIn() {
         }
         setLoading(true);
         try {
-            // Import here to avoid breaking SSR if needed
-            const { signInWithEmailAndPassword } = await import('firebase/auth');
+            const { signInWithEmailAndPassword, signOut } = await import('firebase/auth');
             const { auth } = await import('../firebase');
-            await signInWithEmailAndPassword(auth, form.email, form.password);
+            const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
+            // Check role in Firestore
+            const db = getFirestore();
+            const userDoc = doc(db, 'users', userCredential.user.uid);
+            const userSnap = await getDoc(userDoc);
+            if (!userSnap.exists() || userSnap.data().role !== 'user') {
+                await signOut(auth);
+                setErrors({ firebase: 'Access denied: Not a user account.' });
+                setLoading(false);
+                return;
+            }
             setSuccess('Login successful! Redirecting...');
             setForm({ email: '', password: '', remember: false });
             setTimeout(() => {
@@ -68,21 +78,31 @@ function LogIn() {
         setSuccess('');
         setLoading(true);
         try {
-            const { signInWithPopup } = await import('firebase/auth');
-            const { auth, googleProvider, db } = await import('../firebase');
-            const { doc, setDoc, getDoc } = await import('firebase/firestore');
+            const { signInWithPopup, signOut } = await import('firebase/auth');
+            const { auth, googleProvider } = await import('../firebase');
+            const { getFirestore, doc, setDoc, getDoc } = await import('firebase/firestore');
             const result = await signInWithPopup(auth, googleProvider);
             // Store user profile in Firestore if not exists
+            const db = getFirestore();
             const userDoc = doc(db, 'users', result.user.uid);
             const userSnap = await getDoc(userDoc);
             if (!userSnap.exists()) {
                 await setDoc(userDoc, {
                     name: result.user.displayName,
                     email: result.user.email,
-                    createdAt: new Date()
+                    createdAt: new Date(),
+                    role: 'user'
                 });
+            } else if (userSnap.data().role !== 'user') {
+                await signOut(auth);
+                setErrors({ firebase: 'Access denied: Not a user account.' });
+                setLoading(false);
+                return;
             }
             setSuccess('Login successful! Redirecting...');
+            setTimeout(() => {
+                navigate('/user-dashboard');
+            }, 1500);
         } catch (error) {
             let msg = error.message;
             if (error.code === 'auth/popup-closed-by-user') msg = 'Google login popup was closed.';

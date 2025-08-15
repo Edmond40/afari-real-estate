@@ -7,7 +7,7 @@ function ContactForm(){
     }
 
     return(
-        <div className="p-4 bg-gray-100 shadow-sm rounded-lg">
+        <div className="p-4 bg-gray-100 shadow-sm rounded-lg" data-aos="fade-right">
             <form onSubmit={handleForm} className="flex flex-col gap-3">
                 <div>
                     <label htmlFor="name">Name</label>

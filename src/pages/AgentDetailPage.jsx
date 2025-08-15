@@ -32,7 +32,7 @@ function AgentDetailPage(){
     return(
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-8xl mx-auto px-7 py-8">
-                <nav className="mb-8">
+                <nav className="mb-8" data-aos="zoom-in">
                     <ol className="flex items-center space-x-2 text-sm text-gray-600">
                         <li><Link to="/" className="hover:text-blue-600">Home</Link></li>
                         <li>/</li>
@@ -44,7 +44,7 @@ function AgentDetailPage(){
 
                 <div className="md:grid md:grid-cols-1 lg:grid lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 md:col-span-1 flex flex-col gap-10">
-                        <div className="bg-white rounded-lg shadow-md p-6">
+                        <div className="bg-white rounded-lg shadow-md p-6" data-aos="fade-right">
                             <div className="flex gap-3 items-center mb-6">
                                 <img src={agent.AgentImage} alt={agent.AgentName} className="w-32 h-32 rounded-full object-cover" />
                                 <div>
@@ -65,7 +65,7 @@ function AgentDetailPage(){
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-5">
+                        <div className="flex flex-col gap-5" data-aos="fade-up">
                             <h1 className="md:text-xl text-base font-semibold">Current Listings</h1>
                             <div>
                                 <AgentGallery/>
@@ -76,7 +76,7 @@ function AgentDetailPage(){
                     <div className="bg-white rounded-md shadow-md p-5 flex flex-col gap-3 lg:col-span-1 lg:h-[85%]">
                         <h1 className="md:text-xl font-semibold text-base">Contact Agent</h1>
 
-                        <form onSubmit={handleSubmit} className="flex flex-col gap-4 ">
+                        <form onSubmit={handleSubmit} className="flex flex-col gap-4" data-aos="fade-up">
                             <div>
                                 <label htmlFor="name">Name</label>
                                 <input type="text" name="name" id="" className="mt-1 px-2 py-2 duration-500 block w-full rounded-md focus:outline-blue-500 outline-blue-100 duration-500 p-2 shadow-sm focus:border-blue-500"/>
@@ -95,8 +95,9 @@ function AgentDetailPage(){
                             </div>
                             <button type="submit" className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 duration-300">Send Message</button>
                         </form>
+
                         <h1 className="md:text-xl font-semibold text-base">Agent Info</h1>
-                        <div className="flex flex-col gap-2 text-gray-600">
+                        <div className="flex flex-col gap-2 text-gray-600 md:w-72 w-52" data-aos="fade-left">
                             <div className="flex items-center gap-2">
                                 <MapPin size={20}/>
                                 <p>{agent.Location}</p>

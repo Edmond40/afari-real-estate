@@ -45,14 +45,12 @@ function MobileNavbar(){
                                 </div>
                             ) : (
                                 <div>
-                                    <Link to="/sign-up" className='cursor-pointer'>Sign Up</Link>
-                                    <Link to="/log-in" className='cursor-pointer ml-2'>Sign In</Link>
+                                    <Link to="/signup" className='cursor-pointer'>Sign Up</Link>
+                                    <Link to="/login" className='cursor-pointer ml-2'>Sign In</Link>
                                 </div>
                             )
                         }
                     </div>
-                    
-
 
                     <button onClick={() => setIsOpen(!isOpen)}
                     className="p-2 text-white rounded-md hover:bg-maroon-dark">

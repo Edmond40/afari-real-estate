@@ -47,7 +47,7 @@ function PropertiesDetailForm({ property }){
     }
 
     return(
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6  top-8">
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6 top-8" data-aos="fade-down">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Contact Agent</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>

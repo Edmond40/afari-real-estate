@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
 
 export default function AdminSignup() {
   const [email, setEmail] = useState('');
@@ -20,7 +21,14 @@ export default function AdminSignup() {
     }
     setLoading(true);
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Set admin role in Firestore
+      const db = getFirestore();
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        email,
+        createdAt: new Date(),
+        role: 'admin'
+      });
       navigate('/admin/dashboard'); // Change to your admin dashboard route
     } catch (err) {
       setError(err.message);

@@ -54,7 +54,7 @@ function AgentsPage(){
     return(
         <div className="flex flex-col gap-5 m-5">
             <div className="bg-gray-50 p-10 rounded-md shadow-md">
-                <form onSubmit={handleSearch} className="flex flex-col gap-4">
+                <form onSubmit={handleSearch} className="flex flex-col gap-4" data-aos="fade-right">
                     <div className="md:grid md:grid-cols-4 flex flex-col md:flex-row gap-4">
 
                         <input type="text" name="AgentName"

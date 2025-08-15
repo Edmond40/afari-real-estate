@@ -42,11 +42,11 @@ function PropertiesPage(){
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 py-8">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                <div className="mb-8 md:w-72">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2 w-52" data-aos="fade-left">
                         {isFiltered ? 'Search Results' : 'All Properties'}
                     </h1>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600" data-aos="fade-right">
                         {isFiltered 
                             ? `Found ${displayProperties.length} properties matching your search`
                             : `Browse through ${displayProperties.length} available properties`
@@ -56,7 +56,7 @@ function PropertiesPage(){
 
                 {/* Filters */}
                 <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4" data-aos="flip-up">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Location
@@ -156,15 +156,14 @@ function PropertiesPage(){
                     </div>
                 ) : (
                     <div className="text-center py-12">
-                        <div className="text-gray-400 text-6xl mb-4">🏠</div>
+                        <div className="text-gray-400 text-6xl mb-4" data-aos="zoom-in">🏠</div>
                         <h3 className="text-xl font-semibold text-gray-900 mb-2">No properties found</h3>
                         <p className="text-gray-600 mb-4">
                             Try adjusting your search criteria or browse all properties
                         </p>
                         <button
                             onClick={clearFilters}
-                            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                        >
+                            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors" data-aos="fade-up">
                             View All Properties
                         </button>
                     </div>

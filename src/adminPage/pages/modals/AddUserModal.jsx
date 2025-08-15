@@ -1,5 +1,5 @@
 import { UserPlus, X } from "lucide-react";
-// import { motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useState } from 'react';
 
 function AddUserModal({onClose, onAddUser}){

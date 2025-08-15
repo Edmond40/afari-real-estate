@@ -86,7 +86,7 @@ function Home(){
             <div>
                 <HeroSection/>
                 {/* Search area */}
-                <form onSubmit={handleSearch} className='lg:grid lg:grid-cols-4 md:grid md:grid-cols-2 bg-gray-50 shadow-lg flex flex-col justify-between md:items-end p-6 rounded-md m-10 mx-10 gap-5'>
+                <form onSubmit={handleSearch} className='lg:grid lg:grid-cols-4 md:grid md:grid-cols-2 bg-gray-50 shadow-lg flex flex-col justify-between md:items-end p-6 rounded-md m-10 mx-10 gap-5' data-aos="zoom-in">
                     <div>
                         <p className='font-medium text-gray-700'>Location</p>
                         <input 
@@ -148,9 +148,9 @@ function Home(){
 
 
                 <div className='flex flex-col gap-4 m-5 p-5'>
-                    <div className='flex items-center gap-2'>
-                        <h2 className='text-sm md:text-xl font-semibold text-gray-700'>Featured Properties</h2>
-                        <div className='w-16 h-[3px] bg-yellow-400'></div>
+                    <div className='flex items-center gap-2 w-66'>
+                        <h2 className='text-sm md:text-xl font-semibold text-gray-700' data-aos="fade-right">Featured Properties</h2>
+                        <div className='w-16 h-[3px] bg-yellow-400' data-aos="fade-left"></div>
                     </div>
                     <div className='lg:grid lg:grid-cols-4 md:grid md:grid-cols-2 flex flex-col justify-between md:items-end rounded-md gap-5'>
                         {

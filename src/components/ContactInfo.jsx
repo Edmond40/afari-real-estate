@@ -7,7 +7,7 @@ function ContactInfo(){
 
     return(
         <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-5 p-4 bg-gray-100 shadow-sm rounded-lg">
+            <div className="flex flex-col gap-5 p-4 bg-gray-100 shadow-sm rounded-lg" data-aos="fade-down">
                 <h1 className="md:text-2xl text-base font-semibold">Contact Information</h1>
                 <div className="flex gap-3">
                     <MapPin size={25} className="text-blue-500"/>
@@ -34,7 +34,7 @@ function ContactInfo(){
                 </div>
             </div>
 
-            <div className="flex flex-col gap-5 p-4 bg-gray-100 shadow-sm rounded-lg">
+            <div className="flex flex-col gap-5 p-4 bg-gray-100 shadow-sm rounded-lg" data-aos="fade-up">
                 <h1 className="md:text-2xl text-base font-semibold">Office Hours</h1>
                 <div className="flex flex-col gap-3">
                     <div className="flex gap-3">

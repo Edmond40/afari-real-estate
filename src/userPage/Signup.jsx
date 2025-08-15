@@ -67,7 +67,8 @@ function SignUp() {
                 await setDoc(doc(db, 'users', userCredential.user.uid), {
                     name: form.name,
                     email: form.email,
-                    createdAt: new Date()
+                    createdAt: new Date(),
+                    role: 'user' // Add this line
                 });
                 setSuccess('Signup successful! Please check your email for a verification link.');
                 setForm({ name: '', email: '', password: '', confirmPassword: '', terms: false });

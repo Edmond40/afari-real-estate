@@ -1,7 +1,9 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './index.css';
 import VerifyAdmin from './adminPage/VerifyAdmin';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 // Layouts
 const MainLayout = lazy(() => import('./pages/MainLayout'));
@@ -22,6 +24,8 @@ const AdminDashboard = lazy(() => import('./adminPage/pages/AdminDashboard'));
 const AdminAgents = lazy(() => import('./adminPage/pages/Agent'));
 const AdminInquiries = lazy(() => import('./adminPage/pages/Inquiries'));
 const AdminProperties = lazy(() => import('./adminPage/pages/Properties'));
+const AdminAddProperty = lazy(() => import('./adminPage/pages/modals/propertiesModal/AddPropertyModal'))
+const AdminEditProperty = lazy(() => import('./adminPage/pages/modals/propertiesModal/EditPropertyModal'))
 const AdminUsers = lazy(() => import('./adminPage/pages/User'));
 const AdminProfile = lazy(() => import('./adminPage/pages/Profile'));
 const AdminSettings = lazy(() => import('./adminPage/pages/Settings'));
@@ -44,12 +48,21 @@ const AdminSignup = lazy(() => import('./adminPage/Signup'));
 
 // Loading component
 const LoadingFallback = () => (
-  <div className="flex items-center justify-center min-h-screen">
+  <div className="flex flex-col items-center gap-3 justify-center min-h-screen">
+    <p className='arena text-xl font-semibold'>Please wait...</p>
     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
   </div>
 );
 
 function App() {
+  useEffect(() => {
+    AOS.init({
+      duration: 1300,
+      delay: 200,
+      offset: 100,
+      easing: 'ease-in-out',
+    });
+  }, []);
   return (
     <Router>
       <Suspense fallback={<LoadingFallback />}>
@@ -72,6 +85,8 @@ function App() {
             <Route path="agents" element={<VerifyAdmin><AdminAgents /></VerifyAdmin>} />
             <Route path="inquiries" element={<VerifyAdmin><AdminInquiries /></VerifyAdmin>} />
             <Route path="properties" element={<VerifyAdmin><AdminProperties /></VerifyAdmin>} />
+            <Route path='add-property' element={<VerifyAdmin><AdminAddProperty/></VerifyAdmin>} />
+            <Route path='edit-property/:id' element={<VerifyAdmin><AdminEditProperty/></VerifyAdmin>} />
             <Route path="users" element={<VerifyAdmin><AdminUsers /></VerifyAdmin>} />
             <Route path="profile" element={<VerifyAdmin><AdminProfile /></VerifyAdmin>} />
             <Route path="settings" element={<VerifyAdmin><AdminSettings /></VerifyAdmin>} />
@@ -94,6 +109,7 @@ function App() {
             <Route path='notification' element={<Notification/>}/>
             <Route path='settings' element={<Settings/>}/>
           </Route>
+          
 
           {/* 404 Route */}
           <Route path="*" element={<Navigate to="/" replace />} />

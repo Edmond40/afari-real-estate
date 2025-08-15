@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getAuth, signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail } from 'firebase/auth';
 import { googleProvider } from '../firebase';
+import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -17,7 +18,17 @@ export default function AdminLogin() {
     setError('');
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      // Check role in Firestore
+      const db = getFirestore();
+      const userDoc = doc(db, 'users', userCredential.user.uid);
+      const userSnap = await getDoc(userDoc);
+      if (!userSnap.exists() || userSnap.data().role !== 'admin') {
+        await auth.signOut();
+        setError('Access denied: Not an admin account.');
+        setLoading(false);
+        return;
+      }
       navigate('/admin/dashboard');
     } catch (err) {
       setError(err.message);
@@ -30,7 +41,23 @@ export default function AdminLogin() {
     setError('');
     setLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      // Store admin profile in Firestore if not exists
+      const db = getFirestore();
+      const userDoc = doc(db, 'users', result.user.uid);
+      const userSnap = await getDoc(userDoc);
+      if (!userSnap.exists()) {
+        await setDoc(userDoc, {
+          email: result.user.email,
+          createdAt: new Date(),
+          role: 'admin'
+        });
+      } else if (userSnap.data().role !== 'admin') {
+        await auth.signOut();
+        setError('Access denied: Not an admin account.');
+        setLoading(false);
+        return;
+      }
       navigate('/admin/dashboard');
     } catch (err) {
       setError(err.message);

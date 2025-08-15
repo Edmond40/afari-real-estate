@@ -25,10 +25,10 @@ function PropertiesDetailPage() {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="text-6xl mb-4">🏠</div>
+                    <div className="text-6xl mb-4" data-aos="zoom-in">🏠</div>
                     <h2 className="text-2xl font-semibold text-gray-900 mb-2">Property Not Found</h2>
                     <p className="text-gray-600 mb-4">The property you're looking for doesn't exist.</p>
-                    <Link to="/properties" className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+                    <Link to="/properties" className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700" data-aos="fade-up">
                         Back to Properties
                     </Link>
                 </div>
@@ -41,7 +41,7 @@ function PropertiesDetailPage() {
             <div className="max-w-7xl mx-auto px-4 py-8">
                 {/* Breadcrumb */}
                 <nav className="mb-8">
-                    <ol className="flex items-center space-x-2 text-sm text-gray-600">
+                    <ol className="flex items-center space-x-2 text-sm text-gray-600 w-58" data-aos="fade-left">
                         <li><Link to="/" className="hover:text-blue-600">Home</Link></li>
                         <li>/</li>
                         <li><Link to="/properties" className="hover:text-blue-600">Properties</Link></li>
@@ -71,7 +71,7 @@ function PropertiesDetailPage() {
                         {/* Contact Form */}
                         <PropertiesDetailForm />
 
-                        <div className='md:grid md:grid-cols-2 lg:grid lg:grid-cols-1'>
+                        <div className='md:grid md:grid-cols-2 lg:grid lg:grid-cols-1' data-aos="fade-up">
                             {/* Agent Info */}
                             <PropertiesDetailAgent/>
 

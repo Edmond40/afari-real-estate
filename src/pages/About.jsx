@@ -9,7 +9,7 @@ function About(){
     return(
         <div>
             <AboutSection/>
-            <div className="bg-white z-5 relative">
+            <div className="bg-white z-5 relative flex flex-col">
                 <AboutCards/>
                 <AboutTeamCard/>
                 <AboutYears/>

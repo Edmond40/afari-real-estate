@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import axios from 'axios';
+// import axios from 'axios';
 import { Link, useParams } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';

@@ -17,7 +17,7 @@ function PropertyCard({ property }) {
     const defaultImage = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80';
 
     return (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-sm transition-shadow duration-300 group">
+        <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-sm transition-shadow duration-300 group" data-aos="zoom-in">
             {/* Property Image */}
             <div className="relative h-48 overflow-hidden">
                 <img
@@ -113,7 +113,7 @@ function PropertyCard({ property }) {
                     </Link>
                     <button className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-200 cursor-pointer" onClick={()=> 
                         {   
-                            setColor(true)
+                            setColor(prev => !prev)
                             addFavorite(property);
                             toast.success('Property Saved to Favorite Successfully!')
                         }}>

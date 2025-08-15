@@ -1,32 +1,11 @@
-import Bg1 from '../../assets/images/bg1.jpg'
-import Team1 from '../../assets/images/team1.jpg'
 import { HousePlus, SquarePen, Trash2, UserPlus } from "lucide-react";
 import { useContext, useState } from "react";
-import AddPropertyModal from "./modals/propertiesModal/AddPropertyModal";
-import EditPropertyModal from './modals/propertiesModal/EditPropertyModal';
 import { toast } from "react-toastify";
 import { ShopContext } from '../../context/ShopContext';
+import { Link } from 'react-router-dom';
 
 function Properties(){
-    const [showModal, setShowModal] = useState(false);
-    const [editModal, setShowEditModal] = useState(false);
-    const [selectedProperty, setSelectedProperty] = useState(null);
-    const { properties, addProperty, editProperty, deleteProperty } = useContext(ShopContext);
-
-    // Add property handler
-    const handleAddProperty = (property) => {
-        addProperty(property);
-        setShowModal(false);
-        toast.success('Property Successfully Added!');
-    };
-
-    // Edit property handler
-    const handleEditProperty = (property) => {
-        editProperty(property);
-        setShowEditModal(false);
-        setSelectedProperty(null);
-        toast.success('Property Edited Successfully!');
-    };
+    const { properties, deleteProperty } = useContext(ShopContext);
 
     // Delete property handler
     const handleDeleteProperty = (id) => {
@@ -43,20 +22,13 @@ function Properties(){
                     <HousePlus className='text-green-400'/>
                     <h1 className="text-xl font-semibold text-gray-700">Property Management</h1>
                 </div>
-                <div className="flex items-center gap-1 bg-blue-500 text-white p-2 rounded-md hover:scale-110 duration-300 cursor-pointer" onClick={()=> setShowModal(true)}>
+                <Link to="/admin/add-property" className="flex items-center gap-1 bg-blue-500 text-white p-2 rounded-md hover:scale-110 duration-300 cursor-pointer">
                     <UserPlus/>
                     <span>Add New Property</span>
-                </div>
+                </Link>
             </div>
-            {/* AddPropertyModal */}
-            { showModal && <AddPropertyModal onClose={() => setShowModal(false)} onAddProperty={handleAddProperty} />}
-            { editModal && selectedProperty && (
-                <EditPropertyModal
-                    onClose={() => { setShowEditModal(false); setSelectedProperty(null); }}
-                    property={selectedProperty}
-                    onEditProperty={handleEditProperty}
-                />
-            )}
+            
+            
             <div className="w-full overflow-x-auto h-[60vh] border rounded-md">
                 <table className="w-full border ">
                     <thead>
@@ -98,7 +70,9 @@ function Properties(){
                                     <td className="text-left py-3 px-4 font-medium text-gray-700 ">{property.AgentNumber || property.number}</td>
                                     <td>
                                         <div className="flex items-center gap-3">
-                                            <SquarePen size={25} className="text-blue-500 hover:text-blue-600 hover:scale-110 duration-300 cursor-pointer" onClick={()=> { setSelectedProperty(property); setShowEditModal(true); }}/>
+                                            <Link to={`/admin/edit-property/${property.id}`}>
+                                                <SquarePen size={25} className="text-blue-500 hover:text-blue-600 hover:scale-110 duration-300 cursor-pointer" />
+                                            </Link>
                                             <Trash2 size={25} className="text-red-500 hover:text-red-600 hover:scale-110 duration-300 cursor-pointer" onClick={() => handleDeleteProperty(property.id)} />
                                         </div>
                                     </td>

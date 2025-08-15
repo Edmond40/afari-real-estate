@@ -8,7 +8,6 @@ function MainLayout(){
 
     return(
         <div >
-
             <div className="flex flex-col flex-grow">
                 <div className="md:hidden">
                     <MobileNavbar/>

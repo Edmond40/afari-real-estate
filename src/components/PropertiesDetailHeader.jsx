@@ -47,7 +47,7 @@ function PropertiesDetailHeader(){
             </div>
 
             {/* Property Tags */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 w-52" data-aos="fade-right">
                 <span className={`px-3 py-1 text-sm font-semibold rounded-full ${
                     property.category === 'For Sale' 
                         ? 'bg-green-100 text-green-800' 
