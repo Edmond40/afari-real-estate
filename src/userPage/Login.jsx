@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { AuthContext } from '../contexts/auth';
 
 function LogIn() {
     const [form, setForm] = useState({
@@ -13,6 +13,7 @@ function LogIn() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState('');
     const navigate = useNavigate();
+    const { login } = useContext(AuthContext);
 
     function validate() {
         let errs = {};
@@ -42,74 +43,31 @@ function LogIn() {
             setErrors(errs);
             return;
         }
-        setLoading(true);
+        
         try {
-            const { signInWithEmailAndPassword, signOut } = await import('firebase/auth');
-            const { auth } = await import('../firebase');
-            const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
-            // Check role in Firestore
-            const db = getFirestore();
-            const userDoc = doc(db, 'users', userCredential.user.uid);
-            const userSnap = await getDoc(userDoc);
-            if (!userSnap.exists() || userSnap.data().role !== 'user') {
-                await signOut(auth);
-                setErrors({ firebase: 'Access denied: Not a user account.' });
-                setLoading(false);
-                return;
+            setLoading(true);
+            const result = await login(form.email, form.password);
+            
+            if (result.success) {
+                setSuccess('Login successful! Redirecting...');
+                setForm({ email: '', password: '', remember: false });
+                setTimeout(() => {
+                    navigate('/user-dashboard');
+                }, 1500);
+            } else {
+                setErrors({ firebase: result.error || 'Login failed. Please try again.' });
             }
-            setSuccess('Login successful! Redirecting...');
-            setForm({ email: '', password: '', remember: false });
-            setTimeout(() => {
-                navigate('/user-dashboard');
-            }, 1500);
         } catch (error) {
-            let msg = error.message;
-            if (error.code === 'auth/user-not-found') msg = 'No user found with this email.';
-            if (error.code === 'auth/wrong-password') msg = 'Incorrect password.';
-            if (error.code === 'auth/invalid-email') msg = 'Invalid email address.';
-            setErrors({ firebase: msg });
+            console.error('Login error:', error);
+            setErrors({ firebase: error.message || 'An error occurred during login.' });
         } finally {
             setLoading(false);
         }
     }
 
-    async function handleGoogleLogin() {
-        setErrors({});
-        setSuccess('');
-        setLoading(true);
-        try {
-            const { signInWithPopup, signOut } = await import('firebase/auth');
-            const { auth, googleProvider } = await import('../firebase');
-            const { getFirestore, doc, setDoc, getDoc } = await import('firebase/firestore');
-            const result = await signInWithPopup(auth, googleProvider);
-            // Store user profile in Firestore if not exists
-            const db = getFirestore();
-            const userDoc = doc(db, 'users', result.user.uid);
-            const userSnap = await getDoc(userDoc);
-            if (!userSnap.exists()) {
-                await setDoc(userDoc, {
-                    name: result.user.displayName,
-                    email: result.user.email,
-                    createdAt: new Date(),
-                    role: 'user'
-                });
-            } else if (userSnap.data().role !== 'user') {
-                await signOut(auth);
-                setErrors({ firebase: 'Access denied: Not a user account.' });
-                setLoading(false);
-                return;
-            }
-            setSuccess('Login successful! Redirecting...');
-            setTimeout(() => {
-                navigate('/user-dashboard');
-            }, 1500);
-        } catch (error) {
-            let msg = error.message;
-            if (error.code === 'auth/popup-closed-by-user') msg = 'Google login popup was closed.';
-            setErrors({ firebase: msg });
-        } finally {
-            setLoading(false);
-        }
+    // Google login will be implemented later
+    function handleGoogleLogin() {
+        setErrors({ firebase: 'Google login is currently unavailable. Please use email and password.' });
     }
 
     return (
@@ -117,8 +75,16 @@ function LogIn() {
             <div className="shadow-md rounded-md flex flex-col gap-5 md:w-[70%] lg:w-[60%] mx-auto w-[90%] p-4 bg-gray-100">
                 <h2 className="text-2xl font-semibold text-center">Login</h2>
                 <button onClick={handleGoogleLogin} disabled={loading} type="button" className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600 duration-300 disabled:opacity-50 disabled:cursor-not-allowed mb-2">
-                    {loading ? 'Loading...' : 'Continue with Google'}
+                    Continue with Google
                 </button>
+                <div className="relative my-4">
+                    <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                        <span className="px-2 bg-gray-100 text-gray-500">Or continue with</span>
+                    </div>
+                </div>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     <div className="flex flex-col gap-2">
                         <label htmlFor="email">Email*</label>

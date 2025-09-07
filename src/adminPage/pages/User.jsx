@@ -1,27 +1,32 @@
 import { SquarePen, Trash2, UserPlus, Users } from "lucide-react";
-import { useContext, useState } from "react";
+import { useState, useMemo } from "react";
 import AddUserModal from "./modals/AddUserModal";
 import EditUserModal from "./modals/EditUserModal";
-import { ShopContext } from '../../context/ShopContext';
+import { useUsers } from '../../lib/hooks/useUsers';
 
 function User(){
-    const { users, addUser, editUser, deleteUser } = useContext(ShopContext);
+    const [search, setSearch] = useState("");
+    const { users, loading, create, update, remove } = useUsers({ page: 1, limit: 50, search });
     const [showModal, setShowModal] = useState(false);
     const [editModal, setShowEditModal] = useState(false)
     const [selectedUser, setSelectedUser] = useState(null);
-    const [search, setSearch] = useState("");
 
     // Filtered users
-    const filteredUsers = users.filter(user =>
-        user.name.toLowerCase().includes(search.toLowerCase()) ||
-        user.email.toLowerCase().includes(search.toLowerCase()) ||
-        user.role.toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredUsers = useMemo(() => {
+        const list = Array.isArray(users) ? users : [];
+        if (!search) return list;
+        const q = search.toLowerCase();
+        return list.filter(user =>
+            (user.name || '').toLowerCase().includes(q) ||
+            (user.email || '').toLowerCase().includes(q) ||
+            (user.role || '').toLowerCase().includes(q)
+        );
+    }, [users, search]);
 
     // Export users as CSV
     const handleExportCSV = () => {
         const headers = ["Name", "Email", "Joined", "Role"];
-        const rows = filteredUsers.map(user => [user.name, user.email, user.joined, user.role]);
+        const rows = filteredUsers.map(user => [user.name, user.email, (user.joined || user.createdAt || ''), user.role]);
         let csvContent = headers.join(",") + "\n" + rows.map(r => r.map(field => `"${field.replace(/"/g, '""')}"`).join(",")).join("\n");
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
@@ -63,12 +68,16 @@ function User(){
                 </button>
             </div>
             {/* AddUserModal */}
-            { showModal && <AddUserModal onClose={() => setShowModal(false)} onAddUser={addUser}/>}
+            { showModal && <AddUserModal onClose={() => setShowModal(false)} onAddUser={async (payload) => {
+                await create(payload);
+            }}/>}
             { editModal && selectedUser && (
                 <EditUserModal
                     onClose={() => { setShowEditModal(false); setSelectedUser(null); }}
                     user={selectedUser}
-                    onEditUser={editUser}
+                    onEditUser={async (updates) => {
+                        await update({ id: updates.id, name: updates.name, email: updates.email, role: updates.role });
+                    }}
                 />
             )}
             <div className="w-full overflow-x-auto py-6 h-[60vh] border rounded-md">
@@ -84,16 +93,16 @@ function User(){
                     </thead>
                     <tbody>
                         {
-                            filteredUsers.map((user) => (
+                            (loading ? [] : filteredUsers).map((user) => (
                                 <tr key={user.id} className="border-b border-gray-200">
                                     <td className="py-3 px-4">{user.name}</td>
                                     <td className="py-3 px-4">{user.email}</td>
-                                    <td className="py-3 px-4">{user.joined}</td>
+                                    <td className="py-3 px-4">{user.joined || new Date(user.createdAt).toLocaleDateString()}</td>
                                     <td className="py-3 px-4">{user.role}</td>
                                     <td className="py-3 px-4">
                                         <div className="flex items-center gap-3">
                                             <SquarePen size={25} className="text-blue-500 hover:text-blue-600 hover:scale-110 duration-300 cursor-pointer" onClick={()=> { setSelectedUser(user); setShowEditModal(true); }}/>
-                                            <Trash2 size={25} className="text-red-500 hover:text-red-600 hover:scale-110 duration-300 cursor-pointer" onClick={() => deleteUser(user.id)} />
+                                            <Trash2 size={25} className="text-red-500 hover:text-red-600 hover:scale-110 duration-300 cursor-pointer" onClick={() => remove(user.id)} />
                                         </div>
                                     </td>
                                 </tr>

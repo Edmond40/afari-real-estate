@@ -1,0 +1,241 @@
+// Prisma schema
+// Run: npx prisma generate && npx prisma db push
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Review {
+  id         Int       @id @default(autoincrement())
+  rating     Int
+  comment    String?
+  adminReply String?   @db.Text // Admin reply to review
+  listing    Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId  Int
+  user       User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId     Int?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime? @updatedAt // Made optional
+  
+  @@index([listingId])
+  @@index([userId])
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // For production, add: directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  AGENT
+  VIEWER
+}
+
+enum ListingStatus {
+  FOR_SALE
+  FOR_RENT
+  SOLD
+  PENDING
+  DRAFT
+}
+
+enum AgentStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+  SUSPENDED
+  ON_LEAVE
+}
+
+enum InquiryStatus {
+  PENDING
+  RESOLVED
+  CLOSED
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  role      Role      @default(VIEWER)
+  listings  Listing[]
+  notifications Notification[]
+  appointments  Appointment[]
+  inquiries     Inquiry[]
+  reviews       Review[]
+  saved         SavedProperty[]
+  likes         PropertyLike[]
+  viewingHistory ViewingHistory[]
+  preferences   Json?
+  cancelledAppointments Appointment[] @relation("CancelledBy")
+  completedAppointments Appointment[] @relation("CompletedBy")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Agent {
+  id            Int         @id @default(autoincrement())
+  name          String
+  email         String      @unique
+  phone         String?
+  image         String?     @db.Text // Agent profile image (base64)
+  status        AgentStatus @default(ACTIVE)
+  address       String?     // Agent address/location
+  description   String?     @db.Text // Agent bio/description
+  specialization Json?      // Array of specializations
+  propertyCount Int         @default(0) // Number of properties managed by agent
+  listings      Listing[]   // Properties managed by this agent
+  inquiries     Inquiry[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Listing {
+  id          Int            @id @default(autoincrement())
+  title       String
+  description String
+  price       Float
+  bedrooms    Int
+  bathrooms   Int
+  area        Int
+  address     String
+  city        String
+  state       String
+  zipCode     String
+  type        String
+  // e.g. For Sale | For Rent (kept as String to match current frontend)
+  category    String?
+  status      ListingStatus
+  images      Json
+  features    Json
+  // denormalized agent fields kept for compatibility with current UI
+  agentName    String?
+  agentAddress String?
+  agentImage   String?   @db.Text
+
+  // normalized relations
+  agent      Agent?         @relation(fields: [agentId], references: [id])
+  agentId    Int?
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  inquiries   Inquiry[]
+  savedBy     SavedProperty[]
+  likes       PropertyLike[]
+  appointments Appointment[]
+  views        ViewingHistory[]
+  reviews      Review[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model SavedProperty {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId Int
+  createdAt DateTime @default(now())
+
+  @@unique([userId, listingId])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  title     String
+  body      String
+  type      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Appointment {
+  id              Int               @id @default(autoincrement())
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          Int
+  listing         Listing           @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId       Int
+  scheduledAt     DateTime
+  duration        Int               @default(60) // Duration in minutes
+  status          AppointmentStatus @default(SCHEDULED)
+  notes           String?           @db.Text
+  cancellationReason String?        @db.Text
+  cancelledAt     DateTime?
+  cancelledById   Int?
+  cancelledBy     User?             @relation("CancelledBy", fields: [cancelledById], references: [id], onDelete: SetNull)
+  completedAt     DateTime?
+  completedById   Int?
+  completedBy     User?             @relation("CompletedBy", fields: [completedById], references: [id], onDelete: SetNull)
+  agentNotes      String?           @db.Text
+  internalNotes   String?           @db.Text
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  @@index([scheduledAt])
+  @@index([status])
+  @@index([userId])
+  @@index([listingId])
+}
+
+model Inquiry {
+  id          Int           @id @default(autoincrement())
+  name        String
+  email       String
+  phone       String?
+  subject     String
+  message     String        @db.Text
+  reply       String?       @db.Text // Admin reply to inquiry
+  repliedAt   DateTime?     // When the reply was sent
+  repliedBy   Int?          // ID of the user (admin/agent) who replied
+  status      InquiryStatus @default(PENDING)
+  notes       String?       @db.Text // Internal notes
+  listing     Listing?      @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  listingId   Int?
+  agent       Agent?        @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  agentId     Int?
+  user        User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId      Int?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  @@index([email])
+  @@index([status])
+  @@index([listingId])
+  @@index([agentId])
+  @@index([userId])
+}
+
+model ViewingHistory {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId Int
+  viewedAt  DateTime @default(now())
+
+  @@index([userId, viewedAt])
+}
+
+model PropertyLike {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId Int
+  createdAt DateTime @default(now())
+
+  @@unique([userId, listingId])
+}
+

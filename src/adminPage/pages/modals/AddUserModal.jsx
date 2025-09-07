@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { useState } from 'react';
 
 function AddUserModal({onClose, onAddUser}){
-    const [form, setForm] = useState({ name: '', email: '', role: 'viewer' });
+    const [form, setForm] = useState({ name: '', email: '', role: 'viewer', password: '', passwordConfirm: '' });
     const [error, setError] = useState('');
 
     function handleOnChange(event){
@@ -14,7 +14,7 @@ function AddUserModal({onClose, onAddUser}){
     function SubmitForms(event){
         event.preventDefault();
         // Simple validation
-        if (!form.name || !form.email || !form.role) {
+        if (!form.name || !form.email || !form.role || !form.password || !form.passwordConfirm) {
             setError('All fields are required.');
             return;
         }
@@ -23,9 +23,17 @@ function AddUserModal({onClose, onAddUser}){
             setError('Invalid email format.');
             return;
         }
+        if (form.password.length < 6) {
+            setError('Password must be at least 6 characters.');
+            return;
+        }
+        if (form.password !== form.passwordConfirm) {
+            setError('Passwords do not match.');
+            return;
+        }
         setError('');
         // Pass new user data to parent
-        onAddUser(form);
+        onAddUser({ name: form.name, email: form.email, role: form.role, password: form.password, passwordConfirm: form.passwordConfirm });
         onClose();
     }
 
@@ -46,6 +54,14 @@ function AddUserModal({onClose, onAddUser}){
                         <div>
                             <label htmlFor="email">Email*</label>
                             <input type="email" onChange={handleOnChange} name="email" value={form.email} className="border-2 border-gray-700 p-2 w-full rounded-md focus:outline-blue-500 duration-300"/>
+                        </div>
+                        <div>
+                            <label htmlFor="password">Password*</label>
+                            <input type="password" onChange={handleOnChange} name="password" value={form.password} className="border-2 border-gray-700 p-2 w-full rounded-md focus:outline-blue-500 duration-300"/>
+                        </div>
+                        <div>
+                            <label htmlFor="passwordConfirm">Confirm Password*</label>
+                            <input type="password" onChange={handleOnChange} name="passwordConfirm" value={form.passwordConfirm} className="border-2 border-gray-700 p-2 w-full rounded-md focus:outline-blue-500 duration-300"/>
                         </div>
                         <div>
                             <label htmlFor="role">Role*</label>

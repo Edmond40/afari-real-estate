@@ -1,6 +1,6 @@
 import { TrendingUp } from "lucide-react";
-import { useContext, useState } from "react";
-import { ShopContext } from '../../context/ShopContext';
+import { useState } from "react";
+import { useListings } from '../../lib/hooks/useListings';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 const groupOptions = [
@@ -22,20 +22,34 @@ function groupBy(arr, keyFn) {
 }
 
 function PropertiesCard(){
-    const { properties } = useContext(ShopContext);
+    const { listings, loading } = useListings({ limit: 1000 }); // Get all properties for chart
     const [group, setGroup] = useState('status');
+    
+    if (loading) {
+        return (
+            <div className="bg-gray-100 flex flex-col gap-4 rounded-lg shadow-sm p-4">
+                <div className="flex items-center gap-1">
+                    <TrendingUp size={20}/>
+                    <h1 className="text-lg font-semibold text-gray-600">Properties Overview</h1>
+                </div>
+                <div className="text-gray-500">Loading chart data...</div>
+            </div>
+        );
+    }
+    
+    const properties = listings || [];
 
     let grouped = {};
     if (group === 'status') {
-        grouped = groupBy(properties, p => p.propertyType || 'Unknown');
+        grouped = groupBy(properties, p => p.status || p.propertyType || 'Unknown');
     } else if (group === 'location') {
-        grouped = groupBy(properties, p => p.location || 'Unknown');
+        grouped = groupBy(properties, p => p.city || p.location || 'Unknown');
     } else if (group === 'type') {
-        grouped = groupBy(properties, p => p.category || p.purpose || 'Unknown');
+        grouped = groupBy(properties, p => p.type || p.category || 'Unknown');
     } else if (group === 'agent') {
-        grouped = groupBy(properties, p => p.AgentName || 'Unknown');
+        grouped = groupBy(properties, p => p.agentName || p.AgentName || 'Unknown');
     } else if (group === 'purpose') {
-        grouped = groupBy(properties, p => p.purpose || p.category || 'Unknown');
+        grouped = groupBy(properties, p => p.status || p.purpose || p.category || 'Unknown');
     } else if (group === 'bedrooms') {
         grouped = groupBy(properties, p => p.bedrooms ? String(p.bedrooms) : 'Unknown');
     } else if (group === 'price-range') {

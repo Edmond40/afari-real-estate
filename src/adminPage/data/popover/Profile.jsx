@@ -2,12 +2,11 @@ import { motion } from "framer-motion";
 import { User } from "lucide-react";
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getAuth, signOut } from "firebase/auth";
+import { useAuth } from "../../../contexts/auth";
 
 function Profile({ setShowProfile }) {
-  const auth = getAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const user = auth.currentUser;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -16,9 +15,9 @@ function Profile({ setShowProfile }) {
     return () => clearTimeout(timer);
   }, [setShowProfile]);
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/admin/login");
+  const handleLogout = () => {
+    logout();
+    navigate("/admin");
   };
 
   return (

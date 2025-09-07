@@ -1,26 +1,43 @@
-import React, { useContext } from "react";
+import React from "react";
 import { CheckCircle, HousePlus, ShieldCheck, Users } from "lucide-react";
-import { ShopContext } from '../../context/ShopContext';
+import { useDashboardStats } from '../../lib/hooks/useDashboard';
 
 const iconMap = {
     "Total Users": <Users size={30} className="text-indigo-400"/>,
     "Total Properties": <HousePlus size={30} className="text-green-400"/>,
-    "Active Listings": <CheckCircle size={30} className="text-orange-400"/>,
-    "Total Admins": <ShieldCheck size={30} className="text-violet-400"/>
+    "Total Agents": <CheckCircle size={30} className="text-orange-400"/>,
+    "Total Inquiries": <ShieldCheck size={30} className="text-violet-400"/>
 }
 
 function InfoCards(){
-    const { properties, users } = useContext(ShopContext);
-    const totalUsers = users.filter(u => u.role === 'user' || u.role === 'viewer' || u.role === 'agent').length;
-    const totalAdmins = users.filter(u => u.role === 'admin').length;
-    const totalProperties = properties.length;
-    const activeListings = properties.filter(p => (p.propertyType === 'For Sale' || p.propertyType === 'For Rent')).length;
+    const { data: dashboardData, isLoading, error } = useDashboardStats();
+    
+    if (isLoading) {
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 mb-6">
+                {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="animate-pulse flex flex-col justify-between p-5 rounded-lg bg-gray-200 h-24">
+                        <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                        <div className="h-6 bg-gray-300 rounded w-1/2 mt-2"></div>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+    
+    if (error) {
+        return (
+            <div className="p-4 text-red-500 text-center bg-red-50 rounded-lg mt-6">
+                Failed to load dashboard statistics. Please try again.
+            </div>
+        );
+    }
 
-    const infoCard = [
-        { Title: "Total Users", Users: totalUsers },
-        { Title: "Total Properties", Users: totalProperties },
-        { Title: "Active Listings", Users: activeListings },
-        { Title: "Total Admins", Users: totalAdmins }
+    const infoCard = dashboardData?.infoCards || [
+        { Title: "Total Users", Users: "0" },
+        { Title: "Total Properties", Users: "0" },
+        { Title: "Active Listings", Users: "0" },
+        { Title: "Total Agents", Users: "0" }
     ];
 
     return(

@@ -1,0 +1,21 @@
+{
+  "extends": "stylelint-config-standard",
+  "rules": {
+    "property-no-unknown": [
+      true,
+      {
+        "ignoreProperties": [
+          "/^mso-/",
+          "mso-line-height-rule",
+          "mso-hide"
+        ]
+      }
+    ],
+    "property-no-vendor-prefix": [true, {
+      "ignoreProperties": [
+        "appearance",
+        "text-size-adjust"
+      ]
+    }]
+  }
+}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{subject}}</title>
+    <!--[if !mso]><!-->
+    <link href="styles.css" rel="stylesheet" type="text/css">
+    <!--<![endif]-->
+    <!--[if gte mso 9]>
+    <style type="text/css">
+        .button { background-color: #3182ce !important; }
+        .header { background-color: #c53030 !important; }
+    </style>
+    <![endif]-->
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Afari Real Estate</h1>
+            <h2>Appointment Cancelled</h2>
+        </div>
+        
+        <div class="content">
+            <p>Hello {{userName}},</p>
+            
+            <p>We're sorry to inform you that your appointment for <strong>{{listingTitle}}</strong> has been cancelled.</p>
+            
+            <div class="appointment-details cancelled">
+                <p><strong>Property:</strong> {{listingTitle}}</p>
+                <p><strong>Address:</strong> {{address}}</p>
+                <p><strong>Scheduled Date:</strong> {{date}}</p>
+                <p><strong>Scheduled Time:</strong> {{time}}</p>
+                <p><strong>Cancelled By:</strong> {{cancelledBy}}</p>
+                <p><strong>Reason:</strong> {{reason}}</p>
+            </div>
+            
+            <p>If you have any questions or would like to reschedule, please don't hesitate to contact us at <a href="mailto:{{contactEmail}}">{{contactEmail}}</a>.</p>
+            
+            <p>We apologize for any inconvenience this may have caused.</p>
+            
+            <p>Best regards,<br>The Afari Real Estate Team</p>
+        </div>
+        
+        <div class="footer">
+            <p>© 2023 Afari Real Estate. All rights reserved.</p>
+            <p>This is an automated message, please do not reply directly to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

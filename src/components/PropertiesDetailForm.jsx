@@ -1,49 +1,53 @@
-import { useContext, useState } from 'react';
-import { ShopContext } from '../context/ShopContext';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useInquiries } from '../lib/hooks/useInquiries';
+import { toast } from 'react-toastify';
 
 function PropertiesDetailForm({ property }){
-    const { addInquiry, properties } = useContext(ShopContext);
+    const { create: createInquiry } = useInquiries();
     const { id } = useParams();
     const [form, setForm] = useState({
-        user: '',
+        name: '',
         phone: '',
         message: '',
         email: ''
     });
-    const [success, setSuccess] = useState('');
-    const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Get property and agent info
-    const prop = property || (properties && properties.find(p => p.id == id));
-    const agentName = prop?.AgentName || '';
-    const agentStatus = prop?.AgentStatus || '';
-    const propertyName = prop?.title || prop?.name || '';
+    // Get property info
+    const propertyTitle = property?.title || '';
+    const agentId = property?.agentId || null;
 
     function handleChange(e) {
         const { name, value } = e.target;
         setForm(prev => ({ ...prev, [name]: value }));
     }
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
-        if (!form.user || !form.phone || !form.message) {
-            setError('All fields are required.');
-            setSuccess('');
+        if (!form.name || !form.email || !form.message) {
+            toast.error('Name, email, and message are required.');
             return;
         }
-        addInquiry({
-            propertyName,
-            user: form.user,
-            phone: form.phone,
-            message: form.message,
-            agentName,
-            agentStatus,
-            date: new Date().toLocaleDateString(),
-        });
-        setSuccess('Inquiry sent successfully!');
-        setError('');
-        setForm({ user: '', phone: '', message: '', email: '' });
+        
+        setIsSubmitting(true);
+        try {
+            await createInquiry({
+                name: form.name,
+                email: form.email,
+                phone: form.phone,
+                message: form.message,
+                propertyId: parseInt(id),
+                agentId: agentId,
+                type: 'PROPERTY_INQUIRY'
+            });
+            toast.success('Inquiry sent successfully!');
+            setForm({ name: '', phone: '', message: '', email: '' });
+        } catch {
+            toast.error('Failed to send inquiry. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     return(
@@ -56,11 +60,26 @@ function PropertiesDetailForm({ property }){
                     </label>
                     <input
                         type="text"
-                        name="user"
-                        value={form.user}
+                        name="name"
+                        value={form.name}
                         onChange={handleChange}
+                        required
                         className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Your name"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email
+                    </label>
+                    <input
+                        type="email"
+                        name="email"
+                        value={form.email}
+                        onChange={handleChange}
+                        required
+                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Your email address"
                     />
                 </div>
                 <div>
@@ -85,17 +104,17 @@ function PropertiesDetailForm({ property }){
                         rows="4"
                         value={form.message}
                         onChange={handleChange}
+                        required
                         className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="I'm interested in this property..."
                     ></textarea>
                 </div>
-                {error && <div className="text-red-500 text-sm">{error}</div>}
-                {success && <div className="text-green-500 text-sm">{success}</div>}
                 <button
                     type="submit"
-                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors font-medium"
+                    disabled={isSubmitting}
+                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    Send Message
+                    {isSubmitting ? 'Sending...' : 'Send Message'}
                 </button>
             </form>
         </div>

@@ -1,35 +1,35 @@
-import { useContext, useEffect, useState } from "react";
-import { ShopContext } from "../context/ShopContext";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Bath, BedDouble, HeartIcon, MapPinHouse, RulerDimensionLine } from "lucide-react";
 import { toast } from "react-toastify";
+import { formatCurrency } from '../lib/format';
+import { useListings } from '../lib/hooks/useListings';
+import { useAgents } from '../lib/hooks/useAgents';
 
 function AgentGallery(){
-    const { id } = useParams()
-    const { properties, agentInfo } = useContext(ShopContext)
-    const [ agentGallery, setAgentGallery] = useState(null)
-    const { currency } = useContext(ShopContext);
+    const { id } = useParams();
+    const { listings, loading: listingsLoading } = useListings({ limit: 100 });
+    const { agents, loading: agentsLoading } = useAgents({ limit: 100 });
+    const [agentGallery, setAgentGallery] = useState([]);
     const [heartColor, setColor] = useState(false);
  
     useEffect(() => {
-        // Find the agent's name by id from agentInfo
-        const agent = agentInfo.find(a => String(a.AgentId || a.id) === String(id));
-        if (!agent) {
-            setAgentGallery([]);
-            return;
+        if (listings && agents && id) {
+            // Filter listings by agent ID
+            const filteredProperties = listings.filter(
+                (listing) => listing.agentId == id
+            );
+            setAgentGallery(filteredProperties);
         }
-        const filteredProperties = properties.filter(
-            (item) => item.AgentName === agent.AgentName
-        );
-        setAgentGallery(filteredProperties);
-    }, [id, properties, agentInfo]);
+    }, [id, listings, agents]);
 
-    if(!properties || properties.length === 0){
-        return <div>Loading.........</div>
+    if(listingsLoading || agentsLoading){
+        return <div>Loading agent properties...</div>
     }
 
-    if(agentGallery == null) return <div>Loading agent details.....</div>
-    if(!agentGallery) return <div>Agent not found</div> 
+    if(!agentGallery || agentGallery.length === 0) {
+        return <div>No properties found for this agent.</div>
+    } 
 
     return(
         <div>
@@ -40,20 +40,20 @@ function AgentGallery(){
                             <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 group mb-5">
                                 <div className="relative h-48 overflow-hidden">
                                     <img
-                                        src={property.image} alt={property.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        src={property.images?.[0] || '/placeholder-image.jpg'} alt={property.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                     />
                                     <div className="absolute top-3 left-3">
                                         <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                            property.category === 'For Sale' 
+                                            property.status === 'FOR_SALE' 
                                                 ? 'bg-green-100 text-green-800' 
                                                 : 'bg-blue-100 text-blue-800'
                                         }`}>
-                                            {property.category}
+                                            {property.status === 'FOR_SALE' ? 'For Sale' : property.status === 'FOR_RENT' ? 'For Rent' : property.status}
                                         </span>
                                     </div>
                                     <div className="absolute top-3 right-3">
                                         <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                            {property.propertyType}
+                                            {property.type}
                                         </span>
                                     </div>
                                 </div>
@@ -62,11 +62,11 @@ function AgentGallery(){
                                 <div className="p-4">
                                     <div className="mb-3">
                                         <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-1">
-                                            {property.name}
+                                            {property.title}
                                         </h3>
                                         <p className="text-gray-600 text-sm flex items-center">
                                             <MapPinHouse className='w-4 h-4 mr-1'/>
-                                            {property.location}
+                                            {property.city}, {property.state}
                                         </p>
                                     </div>
 
@@ -90,9 +90,9 @@ function AgentGallery(){
                                     <div className="flex items-center justify-between mb-4">
                                         <div>
                                             <p className="text-2xl font-bold text-gray-900">
-                                                {currency}{property.price?.toLocaleString()}
+                                                {formatCurrency(property.price)}
                                             </p>
-                                            {property.category === 'For Rent' && (
+                                            {property.status === 'FOR_RENT' && (
                                                 <p className="text-sm text-gray-600">per month</p>
                                             )}
                                         </div>

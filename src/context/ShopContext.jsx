@@ -1,6 +1,5 @@
 import { agentInfo } from "../agentInfo/AgentInfo";
 import { createContext, useState } from "react";
-import { properties as initialProperties } from '../propertiesInfo/propertiesInfo'
 import { aboutCard } from "../Cards/AboutCard";
 
 export const ShopContext = createContext();
@@ -9,18 +8,11 @@ const ShopContextProvider = (props) => {
     const currency = '$';
     const DeliveryFee = 10;
 
-    // Properties state
-    const [properties, setProperties] = useState([...initialProperties]);
+    // Properties state (no mock data; real data comes from API pages/hooks)
+    const [properties, setProperties] = useState([]);
 
-    // Inquiries state
-    const [inquiries, setInquiries] = useState([]);
-
-    // Users state
-    const [users, setUsers] = useState([
-        {id:1, name: "Yhoung Promize", email: "www.obolotech@gmail.com", joined: '21 Apr 2025', role: 'admin'},
-        {id:2, name: "Obolo", email: "yhoungpromise@gmail.com", joined: '21 Apr 2025', role: 'agent'},
-        {id:3, name: "Nana Yaa", email: "nanayaa@gmail.com", joined: '21 Apr 2025', role: 'viewer'}
-    ]);
+    // Note: Inquiries and Users are now managed via API hooks (useInquiries, useUsers)
+    // These states are kept for backward compatibility with non-admin components
 
     // Add property
     function addProperty(property) {
@@ -40,43 +32,8 @@ const ShopContextProvider = (props) => {
         setProperties(prev => prev.filter(p => p.id !== id));
     }
 
-    // Add inquiry
-    function addInquiry(inquiry) {
-        setInquiries(prev => [
-            ...prev,
-            { ...inquiry, id: prev.length ? Math.max(...prev.map(i => i.id)) + 1 : 1 }
-        ]);
-    }
-
-    // Delete inquiry
-    function deleteInquiry(id) {
-        setInquiries(prev => prev.filter(i => i.id !== id));
-    }
-
-    // Update inquiry status
-    function updateInquiryStatus(id, status) {
-        setInquiries(prev => prev.map(i => i.id === id ? { ...i, agentStatus: status } : i));
-    }
-
-    // Add user
-    function addUser(user) {
-        setUsers(prev => [
-            ...prev,
-            {
-                ...user,
-                id: prev.length ? Math.max(...prev.map(u => u.id)) + 1 : 1,
-                joined: new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })
-            }
-        ]);
-    }
-    // Edit user
-    function editUser(updatedUser) {
-        setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
-    }
-    // Delete user
-    function deleteUser(id) {
-        setUsers(prev => prev.filter(u => u.id !== id));
-    }
+    // Legacy functions kept for backward compatibility
+    // Admin components now use API hooks directly
 
     // Filtering logic
     function filterProperties({location, propertyType, category, priceRange, baseProperties }) {
@@ -144,14 +101,7 @@ const ShopContextProvider = (props) => {
         addProperty,
         editProperty,
         deleteProperty,
-        inquiries,
-        addInquiry,
-        deleteInquiry,
-        updateInquiryStatus,
-        users,
-        addUser,
-        editUser,
-        deleteUser
+        // Legacy properties - admin components use API hooks directly
     }
 
     return(

@@ -1,16 +1,19 @@
 import { DoorOpen, X } from 'lucide-react';
 import { AdminNavLinks } from '../../adminData/AdminNavLinks';
 import { Link, useNavigate } from "react-router-dom";
-import { getAuth, signOut } from "firebase/auth";
+import { useContext } from 'react';
+import { AuthContext } from '../../contexts/auth';
 
 function AdminSidebar({ showLabels, sidebarOpen, setSidebarOpen }) {
-  const auth = getAuth();
-  const navigate = useNavigate(); 
-  const user = auth.currentUser;
+  const navigate = useNavigate();
+  const { logout } = useContext(AuthContext);
 
   const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/admin/login")
+    try {
+      await logout();
+    } finally {
+      navigate("/admin/login");
+    }
   }
   // Sidebar for desktop (md+) and overlay for mobile
   return (
@@ -48,7 +51,7 @@ function AdminSidebar({ showLabels, sidebarOpen, setSidebarOpen }) {
                 className="flex items-center gap-2 p-3 hover:bg-gray-700 text-gray-300 hover:text-gray-100 hover:scale-110 duration-300 rounded-lg"
                 onClick={() => setSidebarOpen(false)}
               >
-                <AdminNavLink.icon size={20} />
+                <AdminNavLink.icon size={25} />
                 <span
                   className={`font-semibold transition-opacity duration-500 ${showLabels ? 'opacity-100 ml-2' : 'opacity-0 ml-0'}`}
                   style={{ transitionProperty: 'opacity, margin-left' }}

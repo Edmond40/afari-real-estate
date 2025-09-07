@@ -1,71 +1,90 @@
-import { useContext, useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { ShopContext } from "../context/ShopContext";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import api from "../lib/api";
+import { formatCurrency } from '../lib/format';
 
-function PropertiesDetailRelated(){
-    const {id} = useParams()
-    const [property, setProperty] = useState(null)
-    const { properties, currency } = useContext(ShopContext)
+function PropertiesDetailRelated({ listing }){
+    const [related, setRelated] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-    const [relatedProperties, setRelatedProperties] = useState([]);
+    const criteria = useMemo(() => {
+        if (!listing) return null;
+        const type = listing.type || listing.propertyType || '';
+        const city = listing.city || '';
+        return { type, city };
+    }, [listing]);
 
-    useEffect(() =>{
-        if(properties.length > 0){
-            const foundProperty = properties.find(p => p.id == id);
-            setProperty(foundProperty)
+    useEffect(() => {
+        const fetchRelated = async () => {
+            if (!listing) return;
+            setLoading(true);
+            setError(null);
+            try {
+                // Prefer same type; fallback to city
+                const params = new URLSearchParams();
+                if (criteria?.type) params.append('type', criteria.type);
+                if (!criteria?.type && criteria?.city) params.append('city', criteria.city);
+                params.append('limit', '20');
 
-            // Get related properties (same type or location)
-            if (foundProperty) {
-                const related = properties
-                    .filter(p => p.id !== foundProperty.id)
-                    .filter(p => p.propertyType === foundProperty.propertyType || p.location === foundProperty.location)
-                    .slice(0, 4);
-                setRelatedProperties(related);
+                const { data } = await api.get(`/listings?${params.toString()}`);
+                const items = data?.data?.listings || data?.listings || [];
+                const filtered = items
+                  .filter((p) => p.id !== listing.id)
+                  .filter((p) => {
+                      const byType = criteria?.type && (p.type === criteria.type || p.propertyType === criteria.type);
+                      const byCity = criteria?.city && p.city === criteria.city;
+                      return byType || byCity;
+                  })
+                  .slice(0, 4);
+                setRelated(filtered);
+            } catch (err) {
+                setError(err);
+            } finally {
+                setLoading(false);
             }
-        }
-    },[id, properties])
+        };
+        fetchRelated();
+    }, [listing, criteria]);
 
-    if(!properties || properties.length === 0){
-        return <div>Loading...</div>;
-    }
+    if (!listing) return null;
 
-    if(property === null){
-        return <div>Loading property details...</div>;
-    }
+    if (loading) return null;
+    if (error) return null;
 
-    if(!property){
-        return <div>Property not found.</div>
-    }
-
-    
     return(
         <div>
-            {relatedProperties.length > 0 && (
+            {related.length > 0 && (
                 <div className="bg-white rounded-lg shadow-md p-6" data-aos="fade-right">
                     <h2 className="text-2xl font-semibold text-gray-900 mb-4">Similar Properties</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {relatedProperties.map((relatedProperty, index) => (
-                            <Link
-                                key={relatedProperty.id || index}
-                                to={`/properties-detail-page/${relatedProperty.id}`}
-                                className="block bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors"
-                            >
-                                <div className="flex items-center space-x-3">
-                                    <img
-                                        src={relatedProperty.image || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80'}
-                                        alt={relatedProperty.name}
-                                        className="w-16 h-16 rounded-md object-cover"
-                                    />
-                                    <div className="flex-1">
-                                        <h3 className="font-semibold text-gray-900">{relatedProperty.name}</h3>
-                                        <p className="text-sm text-gray-600">{relatedProperty.location}</p>
-                                        <p className="text-sm font-semibold text-blue-600">
-                                            {currency}{relatedProperty.price?.toLocaleString()}
-                                        </p>
+                        {related.map((item) => {
+                            const title = item.title || item.name || 'Property';
+                            const location = item.location || [item.city, item.state].filter(Boolean).join(', ');
+                            const image = (Array.isArray(item.images) && item.images[0]) || item.image || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=100&q=80';
+                            return (
+                                <Link
+                                    key={item.id}
+                                    to={`/properties-detail-page/${item.id}`}
+                                    className="block bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors"
+                                >
+                                    <div className="flex items-center space-x-3">
+                                        <img
+                                            src={typeof image === 'string' ? image : image.url || image.src}
+                                            alt={title}
+                                            className="w-16 h-16 rounded-md object-cover"
+                                        />
+                                        <div className="flex-1">
+                                            <h3 className="font-semibold text-gray-900">{title}</h3>
+                                            <p className="text-sm text-gray-600">{location}</p>
+                                            <p className="text-sm font-semibold text-blue-600">
+                                                {formatCurrency(item.price)}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
-                            </Link>
-                        ))}
+                                </Link>
+                            );
+                        })}
                     </div>
                 </div>
             )}

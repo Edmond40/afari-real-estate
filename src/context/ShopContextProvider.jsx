@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { agentInfo } from "../agentInfo/AgentInfo";
-import { properties as initialProperties } from '../propertiesInfo/propertiesInfo';
 import { aboutCard } from "../Cards/AboutCard";
 import { ShopContext } from "./ShopContext";
 
@@ -8,8 +7,8 @@ const ShopContextProvider = (props) => {
     const currency = '$';
     const DeliveryFee = 10;
 
-    // Properties state
-    const [properties, setProperties] = useState([...initialProperties]);
+    // Properties state (no mock data; lists come from API pages/hooks)
+    const [properties, setProperties] = useState([]);
 
     // Inquiries state
     const [inquiries, setInquiries] = useState([]);

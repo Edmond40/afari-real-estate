@@ -4,6 +4,7 @@ import './index.css';
 import VerifyAdmin from './adminPage/VerifyAdmin';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import { AuthProvider } from './contexts/AuthContext';
 
 // Layouts
 const MainLayout = lazy(() => import('./pages/MainLayout'));
@@ -29,6 +30,9 @@ const AdminEditProperty = lazy(() => import('./adminPage/pages/modals/properties
 const AdminUsers = lazy(() => import('./adminPage/pages/User'));
 const AdminProfile = lazy(() => import('./adminPage/pages/Profile'));
 const AdminSettings = lazy(() => import('./adminPage/pages/Settings'));
+const AdminAppointments = lazy(() => import('./adminPage/pages/Appointments'));
+// Import the new AppointmentsPage
+import AppointmentsPage from './pages/AppointmentsPage';
 
 // User Pages - Lazy loaded
 const UserLogin = lazy(() => import('./userPage/Login'));
@@ -63,8 +67,10 @@ function App() {
       easing: 'ease-in-out',
     });
   }, []);
+  
   return (
-    <Router>
+    <AuthProvider>
+      <Router>
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
           {/* Public Routes */}
@@ -88,6 +94,7 @@ function App() {
             <Route path='add-property' element={<VerifyAdmin><AdminAddProperty/></VerifyAdmin>} />
             <Route path='edit-property/:id' element={<VerifyAdmin><AdminEditProperty/></VerifyAdmin>} />
             <Route path="users" element={<VerifyAdmin><AdminUsers /></VerifyAdmin>} />
+            <Route path="appointments" element={<VerifyAdmin><AppointmentsPage /></VerifyAdmin>} />
             <Route path="profile" element={<VerifyAdmin><AdminProfile /></VerifyAdmin>} />
             <Route path="settings" element={<VerifyAdmin><AdminSettings /></VerifyAdmin>} />
           </Route>
@@ -105,7 +112,7 @@ function App() {
             <Route path='saved-properties' element={<SavedProperties/>}/>
             <Route path='viewing-history' element={<ViewingHistory/>}/>
             <Route path="profile" element={<UserProfile/>} />
-            <Route path="appointments" element={<Appointment/>}/>
+            <Route path="appointments" element={<AppointmentsPage />} />
             <Route path='notification' element={<Notification/>}/>
             <Route path='settings' element={<Settings/>}/>
           </Route>
@@ -116,6 +123,7 @@ function App() {
         </Routes>
       </Suspense>
     </Router>
+  </AuthProvider>
   );
 }
 

@@ -1,9 +1,9 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import AgentItem from "../components/AgentItem";
-import { ShopContext } from "../context/ShopContext";
+import { useAgents } from "../lib/hooks/useAgents";
 
 function AgentsPage(){
-    const {agentInfo} = useContext(ShopContext);
+    const { agents, loading } = useAgents({ limit: 100 });
     const [agentCards, setAgentCards] = useState([]);
     const [searchAgent, setSearchAgent] = useState({
         AgentName: '',
@@ -23,33 +23,35 @@ function AgentsPage(){
     function handleSearch(e){
         e.preventDefault();
 
-        let filtered = agentInfo;
+        let filtered = agents || [];
 
         if(searchAgent.AgentName){
-            filtered = filtered.filter(agent => agent.AgentName.toLowerCase().includes(searchAgent.AgentName.toLowerCase()))
+            filtered = filtered.filter(agent => agent.name.toLowerCase().includes(searchAgent.AgentName.toLowerCase()))
         }
 
         if(searchAgent.locationFilter !== 'All Locations'){
-            filtered = filtered.filter(agent => agent.Location === searchAgent.locationFilter)
+            filtered = filtered.filter(agent => agent.address && agent.address.includes(searchAgent.locationFilter))
         }
 
         if(searchAgent.statusFilter !== 'All Status'){
-            filtered = filtered.filter(agent => agent.AgentStatus === searchAgent.statusFilter)
+            filtered = filtered.filter(agent => agent.status === searchAgent.statusFilter.toUpperCase())
         }
 
         if(searchAgent.propertyFilter !== 'All Properties'){
             if (searchAgent.propertyFilter === '10') {
-                filtered = filtered.filter(agent => agent.AgentProperties >= 10);
+                filtered = filtered.filter(agent => (agent.propertyCount || 0) >= 10);
             } else if (searchAgent.propertyFilter === '20') {
-                filtered = filtered.filter(agent => agent.AgentProperties >= 20);
+                filtered = filtered.filter(agent => (agent.propertyCount || 0) >= 20);
             }
         }
         setAgentCards(filtered);
     }
 
     useEffect(() => {
-        setAgentCards(agentInfo)
-    },[agentInfo])
+        if (agents) {
+            setAgentCards(agents)
+        }
+    },[agents])
 
     return(
         <div className="flex flex-col gap-5 m-5">
@@ -166,14 +168,36 @@ function AgentsPage(){
             <div className="flex flex-col gap-10">
                 <h1 className="md:text-xl text-base text-gray-700 font-semibold">Our Agents</h1>
 
-                <div className="lg:grid lg:grid-cols-4 md:grid md:grid-cols-2 flex flex-col gap-10">
-                
-                    {
-                        agentCards.map((agentCard, index) => (
-                            <AgentItem key={index} {...agentCard}/>
-                        ))
-                    }
-                </div>
+                {loading ? (
+                    <div className="text-center py-10">
+                        <div className="text-gray-500">Loading agents...</div>
+                    </div>
+                ) : (
+                    <div className="lg:grid lg:grid-cols-4 md:grid md:grid-cols-2 flex flex-col gap-10">
+                        {
+                            agentCards.map((agent) => (
+                                <AgentItem 
+                                    key={agent.id} 
+                                    id={agent.id}
+                                    name={agent.name}
+                                    image={agent.image}
+                                    status={agent.status}
+                                    email={agent.email}
+                                    address={agent.address}
+                                    phone={agent.phone}
+                                    propertyCount={agent.propertyCount}
+                                    specialization={agent.specialization}
+                                    about={agent.about}
+                                />
+                            ))
+                        }
+                        {agentCards.length === 0 && (
+                            <div className="col-span-full text-center py-10">
+                                <div className="text-gray-500">No agents found</div>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     )

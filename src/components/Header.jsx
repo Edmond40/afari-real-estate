@@ -1,14 +1,13 @@
 import { User } from 'lucide-react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '../firebase';
+import { useAuth } from '../contexts/auth';
 
 function Header() {
-    const [user] = useAuthState(auth);
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
-        await auth.signOut();
+        await logout();
         navigate('/');
     };
 

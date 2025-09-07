@@ -6,7 +6,7 @@ import MobileNavbar from "../../pages/MobileNavbar";
 
 
 function UserLayout(){
-    const UserName = "Yhoung";
+    
 
     return(
         <div className="flex flex-col h-screen justify-between gap-4">
@@ -18,7 +18,7 @@ function UserLayout(){
             </div>
             <div className="mt-18">
                 <div className="bg-gray-100 p-7 rounded-md shadow-md m-4">
-                    <h1 className="text-xl font-semibold text-gray-700">Welcome back, {UserName}!</h1>
+                    <h1 className="text-xl font-semibold text-gray-700">Welcome back, {}</h1>
                 </div>
 
                 <div className="md:flex md:flex-row flex-col md:gap-4 p-4">

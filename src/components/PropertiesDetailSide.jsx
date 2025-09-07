@@ -1,33 +1,8 @@
-import { useContext,useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { ShopContext } from "../context/ShopContext";
+import { formatCurrency } from '../lib/format';
 
-
-function PropertiesDetailSide(){
-
-    const { id } = useParams()
-    const [ property, setProperty] = useState(null)
-    const { properties, currency } = useContext(ShopContext)
-
-    useEffect(() => {
-        if (properties.length > 0) {
-            const foundProperty = properties.find(p => p.id == id);
-            setProperty(foundProperty);
-        }
-    }, [id, properties]);
-
-
-    if (!properties || properties.length === 0) {
-        return <div>Loading...</div>;
-    }
-
-    if (property === null) {
-        return <div>Loading property details...</div>;
-    }
-
-    if (!property) {
-        return <div>Property not found.</div>;
-    }
+function PropertiesDetailSide({ listing }){
+    const property = listing;
+    if (!property) return null;
 
     return(
         <div className="bg-white rounded-lg shadow-md p-6">
@@ -39,24 +14,23 @@ function PropertiesDetailSide(){
                 </div>
                 <div className="flex justify-between">
                     <span className="text-gray-600">Type:</span>
-                    <span className="font-medium">{property.propertyType}</span>
+                    <span className="font-medium">{property.type || property.propertyType}</span>
                 </div>
                 <div className="flex justify-between">
                     <span className="text-gray-600">Status:</span>
-                    <span className="font-medium">{property.category}</span>
+                    <span className="font-medium">{property.status || property.category}</span>
                 </div>
                 <div className="flex justify-between">
                     <span className="text-gray-600">Location:</span>
-                    <span className="font-medium">{property.location}</span>
+                    <span className="font-medium">{property.location || [property.city, property.state].filter(Boolean).join(', ')}</span>
                 </div>
                 <div className="flex justify-between">
                     <span className="text-gray-600">Price:</span>
-                    <span className="font-medium">{currency}{property.price?.toLocaleString()}</span>
+                    <span className="font-medium">{formatCurrency(property.price)}</span>
                 </div>
             </div>
         </div>
     )
 }
-
 
 export default PropertiesDetailSide;

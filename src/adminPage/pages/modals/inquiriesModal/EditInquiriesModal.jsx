@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 function EditInquiriesModal({onClose, inquiry}){
     return(
         <div className="fixed inset-0 backdrop-brightness-50 flex items-center justify-center z-50 overflow-auto top-0 bottom-0" onClick={onClose}>
-            <motion.div className="bg-white shadow p-8 w-full md:w-1/3 mx-auto rounded-lg p-4 text-gray-900" 
+            <motion.div className="bg-white shadow p-8 w-full md:w-1/3 mx-auto rounded-lg text-gray-900" 
                 initial={{ scale: 0, x: -100 }}
                 animate={{ scale: 1, x: 0 }}
                 transition={{ duration: 0.6 }}

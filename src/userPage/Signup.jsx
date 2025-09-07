@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Image1 from '../assets/images/client2.jpeg';
+import { AuthContext } from '../contexts/auth';
 
 function SignUp() {
     const [form, setForm] = useState({
@@ -16,6 +17,7 @@ function SignUp() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState('');
     const navigate = useNavigate();
+    const { signup } = useContext(AuthContext);
 
     function validate() {
         let errs = {};
@@ -51,41 +53,20 @@ function SignUp() {
             setErrors(errs);
             return;
         }
-        setLoading(true);
+        
         try {
-            // Import here to avoid breaking SSR if needed
-            const { createUserWithEmailAndPassword, sendEmailVerification } = await import('firebase/auth');
-            const { auth, db } = await import('../firebase');
-            const { doc, setDoc } = await import('firebase/firestore');
-            const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
-            // Send email verification
-            await sendEmailVerification(userCredential.user);
-            // Force reload of user to ensure authentication state is current
-            await userCredential.user.reload();
-            // Store user profile in Firestore
-            try {
-                await setDoc(doc(db, 'users', userCredential.user.uid), {
-                    name: form.name,
-                    email: form.email,
-                    createdAt: new Date(),
-                    role: 'user' // Add this line
-                });
-                setSuccess('Signup successful! Please check your email for a verification link.');
-                setForm({ name: '', email: '', password: '', confirmPassword: '', terms: false });
-                setTimeout(() => {
-                    navigate('/user-dashboard');
-                }, 2000);
-            } catch (firestoreError) {
-                setErrors({ firebase: 'Signup succeeded but failed to save user profile: ' + firestoreError.message });
-                setLoading(false);
-                return;
-            }
+            setLoading(true);
+            await signup(form.name, form.email, form.password);
+            setSuccess('Signup successful! Redirecting to dashboard...');
+            setForm({ name: '', email: '', password: '', confirmPassword: '', terms: false });
+            setTimeout(() => {
+                navigate('/user-dashboard');
+            }, 2000);
         } catch (error) {
-            let msg = error.message;
-            if (error.code === 'auth/email-already-in-use') msg = 'Email already in use.';
-            if (error.code === 'auth/invalid-email') msg = 'Invalid email address.';
-            if (error.code === 'auth/weak-password') msg = 'Password is too weak.';
-            setErrors({ firebase: msg });
+            console.error('Signup error:', error);
+            setErrors({ 
+                firebase: error.response?.data?.message || 'Signup failed. Please try again.' 
+            });
         } finally {
             setLoading(false);
         }

@@ -1,27 +1,31 @@
-import { useContext, useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ShopContext } from '../context/ShopContext';
+import { Link, useParams } from 'react-router-dom';
 import PropertiesDetailForm from '../components/PropertiesDetailForm';
 import PropertiesDetailAgent from '../components/PropertiesDetailAgent';
 import PropertiesDetailSide from '../components/PropertiesDetailSide';
 import PropertiesDetailFeatures from '../components/PropertiesDetailFeatures';
 import PropertiesDetailRelated from '../components/PropertiesDetailRelated';
+import PropertiesDetailReviews from '../components/PropertiesDetailReviews';
 import PropertiesImage from '../components/PropertiesImage';
 import PropertiesDetailHeader from '../components/PropertiesDetailHeader';
+import { useListing } from '../lib/hooks/useListing';
 
 function PropertiesDetailPage() {
     const { id } = useParams();
-    const { properties, currency } = useContext(ShopContext);
-    const [property, setProperty] = useState(null);
+    const { listing, loading } = useListing(id);
 
-    useEffect(() => {
-        if (properties.length > 0) {
-            const foundProperty = properties.find(p => p.id == id);
-            setProperty(foundProperty);
-        }
-    }, [id, properties]);
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="text-6xl mb-4" data-aos="zoom-in">🏠</div>
+                    <h2 className="text-2xl font-semibold text-gray-900 mb-2">Loading property...</h2>
+                    <p className="text-gray-600 mb-4">Please wait while we fetch the details.</p>
+                </div>
+            </div>
+        );
+    }
 
-    if (!property) {
+    if (!listing) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
@@ -46,24 +50,27 @@ function PropertiesDetailPage() {
                         <li>/</li>
                         <li><Link to="/properties" className="hover:text-blue-600">Properties</Link></li>
                         <li>/</li>
-                        <li className="text-gray-900">{property.name}</li>
+                        <li className="text-gray-900">{listing.title || listing.name || 'Details'}</li>
                     </ol>
                 </nav>
 
                 {/* Property Header */}
-                <PropertiesDetailHeader/>
+                <PropertiesDetailHeader listing={listing}/>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Main Content */}
                     <div className="lg:col-span-2">
                         {/* Image Gallery */}
-                        <PropertiesImage/>
+                        <PropertiesImage listing={listing}/>
 
                         {/* Property Features */}
-                        <PropertiesDetailFeatures/>
+                        <PropertiesDetailFeatures listing={listing}/>
+
+                        {/* Reviews */}
+                        <PropertiesDetailReviews listingId={id} />
 
                         {/* Related Properties */}
-                        <PropertiesDetailRelated/>                     
+                        <PropertiesDetailRelated listing={listing}/>                     
                     </div>
 
                     {/* Sidebar */}
@@ -73,10 +80,10 @@ function PropertiesDetailPage() {
 
                         <div className='md:grid md:grid-cols-2 lg:grid lg:grid-cols-1' data-aos="fade-up">
                             {/* Agent Info */}
-                            <PropertiesDetailAgent/>
+                            <PropertiesDetailAgent listing={listing}/>
 
                             {/* Property Details */}
-                            <PropertiesDetailSide/>
+                            <PropertiesDetailSide listing={listing}/>
                         </div>
                     </div>
                 </div>

@@ -1,24 +1,16 @@
-import { Menu, X, User } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { useState } from "react"
-import {Link, NavLink, useNavigate } from "react-router-dom"
-import { useAuthState } from "react-firebase-hooks/auth"
-import { auth } from "../firebase"
+import {Link, NavLink } from "react-router-dom"
+
 
 
 function MobileNavbar(){
 
     const [isOpen, setIsOpen] = useState(false);
-    const navigate = useNavigate();
-    const [user] = useAuthState(auth);
     
     function handleOpen(){
         setIsOpen(false)
     }
-
-    const handleLogout = async () => {
-        await auth.signOut();
-        navigate('/');
-    };
 
     return(
         <div className="md:hidden bg-slate-800 text-white fixed top-0 w-full z-10">
@@ -33,7 +25,7 @@ function MobileNavbar(){
 
 
                 <div className="flex items-center">
-                    <div className='flex gap-3 font-semibold text-gray-100'>
+                    {/* <div className='flex gap-3 font-semibold text-gray-100'>
                         {
                             user ? (
                                 <div className='group relative'>
@@ -50,7 +42,7 @@ function MobileNavbar(){
                                 </div>
                             )
                         }
-                    </div>
+                    </div> */}
 
                     <button onClick={() => setIsOpen(!isOpen)}
                     className="p-2 text-white rounded-md hover:bg-maroon-dark">
@@ -98,9 +90,7 @@ function MobileNavbar(){
                         </div>
                     )
                 }
-
             </div>
-
         </div>
     )
 }
