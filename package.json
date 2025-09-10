@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run optimize-images && vite build",
+    "build": "npm install vite && npm run optimize-images && vite build --debug",
     "optimize-images": "node scripts/optimize.js",
     "prebuild": "npm run optimize-images",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "render-build": "npm install && npm run build"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -20,7 +21,6 @@
     "aos": "^2.3.4",
     "axios": "^1.11.0",
     "date-fns": "^4.1.0",
-    "firebase": "^12.2.1",
     "lucide-react": "^0.532.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -58,7 +58,7 @@
     "react-toastify": "^11.0.5",
     "recharts": "^3.1.0",
     "tailwindcss": "^4.1.11",
-    "vite": "^7.0.4",
+    "vite": "^7.1.4",
     "yup": "^1.6.1"
   }
 }

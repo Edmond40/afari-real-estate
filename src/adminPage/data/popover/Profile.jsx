@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { User } from "lucide-react";
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../../contexts/auth";
+import { useAuth } from "../../../hooks/useAuth";
 
 function Profile({ setShowProfile }) {
   const { user, logout } = useAuth();

@@ -1,23 +1,11 @@
 {
-    "images": {
-      "sizes": [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-      "domains": [],
-      "minimumCacheTTL": 60,
-      "formats": ["image/webp"],
-      "dangerouslyAllowSVG": false,
-      "contentSecurityPolicy": "default-src 'self'; script-src 'none'; sandbox;"
-    },
-    "routes": [
-      {
-        "src": "/api/.*",
-        "dest": "/api"
-      },
-      {
-        "handle": "filesystem"
-      },
-      {
-        "src": "/.*",
-        "dest": "/index.html"
-      }
-    ]
-  }
+  "version": 2,
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "vite",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

@@ -1,7 +1,7 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Image1 from '../assets/images/client2.jpeg';
-import { AuthContext } from '../contexts/auth';
+import { useAuth } from '../hooks/useAuth';
 
 function SignUp() {
     const [form, setForm] = useState({
@@ -17,7 +17,7 @@ function SignUp() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState('');
     const navigate = useNavigate();
-    const { signup } = useContext(AuthContext);
+    const { signup } = useAuth();
 
     function validate() {
         let errs = {};
@@ -45,27 +45,42 @@ function SignUp() {
 
     async function handleSubmit(e) {
         e.preventDefault();
-        if (loading) return; // Prevent double submit
-        setErrors({});
-        setSuccess('');
-        const errs = validate();
-        if (Object.keys(errs).length > 0) {
-            setErrors(errs);
+        const validationErrors = validate();
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
             return;
         }
-        
+        setErrors({});
+        setLoading(true);
         try {
-            setLoading(true);
-            await signup(form.name, form.email, form.password);
-            setSuccess('Signup successful! Redirecting to dashboard...');
-            setForm({ name: '', email: '', password: '', confirmPassword: '', terms: false });
-            setTimeout(() => {
-                navigate('/user-dashboard');
-            }, 2000);
+            const result = await signup({
+                name: form.name,
+                email: form.email,
+                password: form.password,
+                role: 'user'
+            });
+            
+            if (result.success) {
+                setSuccess('Account created successfully! Redirecting to login...');
+                setForm({
+                    name: '',
+                    email: '',
+                    password: '',
+                    confirmPassword: '',
+                    terms: false,
+                });
+                setTimeout(() => {
+                    navigate('/login');
+                }, 2000);
+            } else {
+                setErrors({ 
+                    server: result.error || 'Signup failed. Please try again.' 
+                });
+            }
         } catch (error) {
             console.error('Signup error:', error);
             setErrors({ 
-                firebase: error.response?.data?.message || 'Signup failed. Please try again.' 
+                server: error.response?.data?.message || 'An error occurred during signup. Please try again.' 
             });
         } finally {
             setLoading(false);
@@ -78,9 +93,8 @@ function SignUp() {
                 <div className="shadow-md rounded-md flex lg:flex-row md:flex-row flex-col gap-5 md:w-full lg:w-full w-[85%] bg-gray-100">
                     <img src={Image1} alt="" className="w-[50%] max-h-full object-cover rounded-md brightness-90 hidden md:flex" />
                     <form onSubmit={handleSubmit} className="p-4 flex flex-col md:gap-3 gap-7 w-full">
-                {errors.firebase && <div className="text-red-500 text-sm mb-2">{errors.firebase}</div>}
-                {success && <div className="text-green-600 text-sm mb-2">{success}
-                    </div>}
+                        {errors.server && <div className="text-red-500 text-sm mb-2">{errors.server}</div>}
+                        {success && <div className="text-green-600 text-sm mb-2">{success}</div>}
                         <div className="flex flex-col gap-2">
                             <label htmlFor="name">Name*</label>
                             <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="Enter your name" className={`focus:outline-blue-500 duration-500 rounded-md p-2 shadow-md ${errors.name && 'border border-red-500'}`} />

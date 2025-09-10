@@ -1,6 +1,6 @@
 import { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { AuthContext } from '../contexts/auth';
+import { useAuth } from '../hooks/useAuth';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -9,7 +9,7 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext);
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();

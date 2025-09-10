@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '../firebase';
+import axios from 'axios';
 
 function PasswordReset() {
   const [email, setEmail] = useState('');
@@ -14,10 +13,10 @@ function PasswordReset() {
     setError('');
     setLoading(true);
     try {
-      await sendPasswordResetEmail(auth, email);
-      setMessage('Password reset email sent! Check your inbox.');
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/forgot-password`, { email });
+      setMessage(response.data.message || 'Password reset email sent! Check your inbox.');
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || 'Failed to send password reset email. Please try again.');
     } finally {
       setLoading(false);
     }

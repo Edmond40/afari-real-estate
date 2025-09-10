@@ -5,7 +5,7 @@ import morgan from 'morgan';
 import { prisma } from './src/lib/prisma.js';
 
 // Verify environment variables
-const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET', 'PORT'];
+const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET'];
 const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingVars.length > 0) {
@@ -30,12 +30,36 @@ const app = express();
 
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ limit: '15mb', extended: true }));
-const corsOrigin = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map(s => s.trim()) : true;
-app.use(cors({ origin: corsOrigin, credentials: true }));
+const corsOrigin = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(s => s.trim())
+  : ['http://localhost:3000', 'http://localhost:5137'];
+app.use(cors({ 
+  origin: corsOrigin, 
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(morgan('dev')); 
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', time: new Date().toISOString() });
+app.get('/api/health', async (req, res) => {
+  try {
+    // Test database connection
+    await prisma.$queryRaw`SELECT 1`;
+    
+    res.json({ 
+      status: 'ok', 
+      time: new Date().toISOString(),
+      database: 'connected',
+      environment: process.env.NODE_ENV || 'development'
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      status: 'error', 
+      time: new Date().toISOString(),
+      database: 'disconnected',
+      error: error.message
+    });
+  }
 });
 
 app.use('/api/auth', authRoute);

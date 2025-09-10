@@ -7,9 +7,11 @@
   "scripts": {
     "dev": "nodemon index.js",
     "start": "node index.js",
+    "build": "npx prisma generate && npx prisma db push",
     "prisma:gen": "prisma generate --schema ./prisma/schema.prisma",
     "prisma:push": "prisma db push --schema ./prisma/schema.prisma",
-    "prisma:migrate": "prisma migrate dev --name init"
+    "prisma:migrate": "prisma migrate dev --name init",
+    "render-postbuild": "npx prisma generate && npx prisma db push"
   },
   "dependencies": {
     "@prisma/client": "^6.15.0",

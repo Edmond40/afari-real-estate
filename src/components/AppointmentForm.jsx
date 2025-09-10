@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, X } from 'lucide-react';
+import { Calendar, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -20,7 +20,6 @@ const AppointmentForm = ({
   initialData = {}, 
   onSubmit, 
   onCancel,
-  loading = false,
   isAdmin = false
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,7 +28,6 @@ const AppointmentForm = ({
     register, 
     handleSubmit, 
     formState: { errors },
-    reset,
     setValue
   } = useForm({
     resolver: zodResolver(appointmentSchema),
@@ -95,10 +93,10 @@ const AppointmentForm = ({
               id="userId"
               type="text"
               {...register('userId')}
-              disabled={!!initialData?.id || isSubmitting}
+              disabled={initialData?.id || isSubmitting}
               className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${
                 errors.userId ? 'border-red-500' : ''
-              } ${!!initialData?.id ? 'bg-gray-100' : ''}`}
+              } ${initialData?.id && 'bg-gray-100'}`}
             />
             {errors.userId && (
               <p className="mt-1 text-sm text-red-600">{errors.userId.message}</p>
@@ -114,10 +112,10 @@ const AppointmentForm = ({
               id="listingId"
               type="text"
               {...register('listingId')}
-              disabled={!!initialData?.id || isSubmitting}
+              disabled={initialData?.id || isSubmitting}
               className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${
                 errors.listingId ? 'border-red-500' : ''
-              } ${!!initialData?.id ? 'bg-gray-100' : ''}`}
+              } ${initialData?.id && 'bg-gray-100'}`}
             />
             {errors.listingId && (
               <p className="mt-1 text-sm text-red-600">{errors.listingId.message}</p>
@@ -143,7 +141,7 @@ const AppointmentForm = ({
                 }`}
               />
             </div>
-            {errors.scheduledAt && (
+            {Boolean(errors.scheduledAt) && (
               <p className="mt-1 text-sm text-red-600">{errors.scheduledAt.message}</p>
             )}
           </div>

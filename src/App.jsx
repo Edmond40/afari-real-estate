@@ -4,7 +4,7 @@ import './index.css';
 import VerifyAdmin from './adminPage/VerifyAdmin';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthProvider';
 
 // Layouts
 const MainLayout = lazy(() => import('./pages/MainLayout'));

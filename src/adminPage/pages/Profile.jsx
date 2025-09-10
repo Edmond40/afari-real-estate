@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { getAuth, updateProfile, updateEmail, updatePassword } from 'firebase/auth';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function AdminProfile() {
-  const auth = getAuth();
-  const user = auth.currentUser;
-  const [email, setEmail] = useState(user ? user.email : '');
-  const [displayName, setDisplayName] = useState(user ? user.displayName || '' : '');
+  const { user, updateProfile } = useAuth();
+  const [email, setEmail] = useState(user?.email || '');
+  const [displayName, setDisplayName] = useState(user?.displayName || user?.name || '');
   const [editing, setEditing] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -17,16 +16,19 @@ export default function AdminProfile() {
     setMessage('');
     setError('');
     try {
-      if (user.displayName !== displayName) {
-        await updateProfile(user, { displayName });
+      const result = await updateProfile({ 
+        name: displayName,
+        email,
+        displayName 
+      });
+      if (result.success) {
+        setMessage('Profile updated successfully!');
+        setEditing(false);
+      } else {
+        setError(result.error || 'Failed to update profile');
       }
-      if (user.email !== email) {
-        await updateEmail(user, email);
-      }
-      setMessage('Profile updated successfully!');
-      setEditing(false);
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || 'An error occurred while updating profile');
     }
   };
 
@@ -80,7 +82,7 @@ export default function AdminProfile() {
             </button>
           </div>
         </form>
-        {showPasswordForm && <PasswordChangeForm user={user} onClose={() => setShowPasswordForm(false)} />}
+        {showPasswordForm && <PasswordChangeForm onClose={() => setShowPasswordForm(false)} />}
         <div className="mt-4">
           <Link to="/admin/settings" className="text-blue-600 hover:underline">Go to Settings</Link>
         </div>
@@ -89,61 +91,108 @@ export default function AdminProfile() {
   );
 }
 
-function PasswordChangeForm({ user, onClose }) {
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
+function PasswordChangeForm({ onClose }) {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleChange = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
     setError('');
-    if (password !== confirm) {
-      setError('Passwords do not match');
+    
+    if (newPassword !== confirmPassword) {
+      setError('New passwords do not match');
       return;
     }
+    
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
+    
     setLoading(true);
     try {
-      await updatePassword(user, password);
-      setMessage('Password updated successfully!');
-      setPassword('');
-      setConfirm('');
-      setTimeout(onClose, 1500);
+      // This is a placeholder for the actual password update API call
+      // In a real implementation, you would call your backend API here
+      // Example:
+      // const response = await fetch('/api/auth/change-password', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ currentPassword, newPassword }),
+      //   credentials: 'include'
+      // });
+      // const data = await response.json();
+      // if (!response.ok) throw new Error(data.message || 'Failed to update password');
+      
+      setMessage('Password update functionality needs to be implemented in the backend');
+      // Uncomment this when implementing the actual API call
+      // setMessage('Password updated successfully');
+      // onClose();
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || 'An error occurred while updating password');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleChange} className="mt-4 space-y-3 bg-gray-50 p-4 rounded shadow">
+    <form onSubmit={handleSubmit} className="mt-4 space-y-3 bg-gray-50 p-4 rounded shadow">
       <h3 className="font-semibold text-center">Change Password</h3>
       {message && <div className="text-green-600 text-center">{message}</div>}
       {error && <div className="text-red-500 text-center">{error}</div>}
-      <input
-        type="password"
-        className="w-full px-3 py-2 border rounded"
-        placeholder="New Password"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        className="w-full px-3 py-2 border rounded"
-        placeholder="Confirm Password"
-        value={confirm}
-        onChange={e => setConfirm(e.target.value)}
-        required
-      />
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+        <input
+          type="password"
+          className="w-full px-3 py-2 border rounded"
+          placeholder="Current Password"
+          value={currentPassword}
+          onChange={e => setCurrentPassword(e.target.value)}
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+        <input
+          type="password"
+          className="w-full px-3 py-2 border rounded"
+          placeholder="New Password"
+          value={newPassword}
+          onChange={e => setNewPassword(e.target.value)}
+          minLength={8}
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+        <input
+          type="password"
+          className="w-full px-3 py-2 border rounded"
+          placeholder="Confirm New Password"
+          value={confirmPassword}
+          onChange={e => setConfirmPassword(e.target.value)}
+          minLength={8}
+          required
+        />
+      </div>
       <div className="flex gap-2">
-        <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded" disabled={loading}>
+        <button 
+          type="submit" 
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors" 
+          disabled={loading}
+        >
           {loading ? 'Saving...' : 'Save Password'}
         </button>
-        <button type="button" className="px-4 py-2 bg-gray-400 text-white rounded" onClick={onClose}>
+        <button 
+          type="button" 
+          className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition-colors" 
+          onClick={onClose}
+          disabled={loading}
+        >
           Cancel
         </button>
       </div>

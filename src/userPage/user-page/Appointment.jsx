@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../../contexts/auth';
+import { useAuth } from '../../hooks/useAuth';
 import api from '../../lib/api';
 import { format } from 'date-fns';
 import { toast } from 'react-toastify';

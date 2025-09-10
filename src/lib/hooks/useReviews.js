@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { TOKEN_KEY } from '../../config/auth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api';
 
@@ -7,7 +8,7 @@ import api from '../api';
 export function useReviews(listingId) {
   const queryClient = useQueryClient();
 
-  const canPost = useMemo(() => !!localStorage.getItem('token'), []);
+  const canPost = useMemo(() => !!localStorage.getItem(TOKEN_KEY), []);
 
   const {
     data: reviewsData,

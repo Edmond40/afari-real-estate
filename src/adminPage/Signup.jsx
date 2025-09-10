@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../lib/api';
+import { TOKEN_KEY } from '../config/auth';
 
 export default function AdminSignup() {
   const [email, setEmail] = useState('');
@@ -29,7 +30,7 @@ export default function AdminSignup() {
       });
       const { token } = res.data || {};
       if (token) {
-        localStorage.setItem('token', token);
+        localStorage.setItem(TOKEN_KEY, token);
       }
       navigate('/admin/dashboard');
     } catch (err) {

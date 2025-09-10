@@ -1,6 +1,6 @@
 import { User } from 'lucide-react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/auth';
+import { useAuth } from '../hooks/useAuth';
 
 function Header() {
     const { user, logout } = useAuth();

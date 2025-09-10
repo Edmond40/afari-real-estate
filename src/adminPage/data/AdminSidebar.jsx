@@ -2,11 +2,11 @@ import { DoorOpen, X } from 'lucide-react';
 import { AdminNavLinks } from '../../adminData/AdminNavLinks';
 import { Link, useNavigate } from "react-router-dom";
 import { useContext } from 'react';
-import { AuthContext } from '../../contexts/auth';
+import { useAuth } from '../../hooks/useAuth';
 
 function AdminSidebar({ showLabels, sidebarOpen, setSidebarOpen }) {
   const navigate = useNavigate();
-  const { logout } = useContext(AuthContext);
+  const { logout } = useAuth();
 
   const handleLogout = async () => {
     try {

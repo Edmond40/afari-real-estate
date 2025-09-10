@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api';
-import { useAuth } from '../../contexts/auth';
+import { useAuth } from '../../hooks/useAuth';
 
 export function useUserInteractions() {
   const queryClient = useQueryClient();

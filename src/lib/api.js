@@ -1,7 +1,9 @@
 import axios from 'axios';
+import { TOKEN_KEY } from '../config/auth';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api',
+  // In dev, use Vite proxy by default to avoid CORS
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -10,7 +12,7 @@ const api = axios.create({
 // Add a request interceptor to add the auth token to requests
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem(TOKEN_KEY);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

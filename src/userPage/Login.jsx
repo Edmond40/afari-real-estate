@@ -1,6 +1,6 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../contexts/auth';
+import { useAuth } from '../hooks/useAuth';
 
 function LogIn() {
     const [form, setForm] = useState({
@@ -13,7 +13,7 @@ function LogIn() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState('');
     const navigate = useNavigate();
-    const { login } = useContext(AuthContext);
+    const { login } = useAuth();
 
     function validate() {
         let errs = {};
@@ -55,11 +55,11 @@ function LogIn() {
                     navigate('/user-dashboard');
                 }, 1500);
             } else {
-                setErrors({ firebase: result.error || 'Login failed. Please try again.' });
+                setErrors({ server: result.error || 'Login failed. Please try again.' });
             }
         } catch (error) {
             console.error('Login error:', error);
-            setErrors({ firebase: error.message || 'An error occurred during login.' });
+            setErrors({ server: error.response?.data?.message || 'An error occurred during login.' });
         } finally {
             setLoading(false);
         }
@@ -67,7 +67,7 @@ function LogIn() {
 
     // Google login will be implemented later
     function handleGoogleLogin() {
-        setErrors({ firebase: 'Google login is currently unavailable. Please use email and password.' });
+        setErrors({ server: 'Google login is currently unavailable. Please use email and password.' });
     }
 
     return (

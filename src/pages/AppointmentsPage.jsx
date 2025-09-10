@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { appointmentService } from '../lib/api';
 import AppointmentsList from '../components/AppointmentsList';
 import AppointmentForm from '../components/AppointmentForm';
