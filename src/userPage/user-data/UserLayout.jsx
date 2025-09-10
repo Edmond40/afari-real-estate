@@ -3,10 +3,11 @@ import Footer from "../../components/Footer";
 import Header from "../../components/Header";
 import UserSidebar from "../user-page/UserSidebar"
 import MobileNavbar from "../../pages/MobileNavbar";
+import { useAuth } from "../../hooks/useAuth";
 
 
 function UserLayout(){
-    
+    const { user } = useAuth();
 
     return(
         <div className="flex flex-col h-screen justify-between gap-4">
@@ -18,7 +19,9 @@ function UserLayout(){
             </div>
             <div className="mt-18">
                 <div className="bg-gray-100 p-7 rounded-md shadow-md m-4">
-                    <h1 className="text-xl font-semibold text-gray-700">Welcome back, {}</h1>
+                    <h1 className="text-xl font-semibold text-gray-700">
+                        Welcome back, {user?.name || user?.firstName || 'User'}
+                    </h1>
                 </div>
 
                 <div className="md:flex md:flex-row flex-col md:gap-4 p-4">

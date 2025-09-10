@@ -1,15 +1,33 @@
 import { User } from 'lucide-react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useState, useRef, useEffect } from 'react';
 
 function Header() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
 
     const handleLogout = async () => {
         await logout();
         navigate('/');
+        setIsDropdownOpen(false);
     };
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsDropdownOpen(false);
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     return (
         <div className='flex justify-between items-center p-5 shadow-md fixed top-0 bg-gray-50 z-50 w-full'>
@@ -52,17 +70,39 @@ function Header() {
             <div className='flex gap-3 font-semibold text-gray-700'>
                 {
                     user ? (
-                        <div className='group relative'>
-                            <User className='cursor-pointer' />
-                            <div className='scale-0 bg-gray-100 p-4 w-32 rounded-md flex flex-col group-hover:scale-110 group-opacity-1 duration-500 absolute top-8 right-2 font-medium text-base text-gray-500'>
-                                <Link to="/user-dashboard" className='cursor-pointer hover:text-gray-700 duration-300'>View Profile</Link>
-                                <button onClick={handleLogout} className='cursor-pointer hover:text-gray-700 duration-300 text-left'>Log Out</button>
+                        <div className='relative' ref={dropdownRef}>
+                            <User 
+                                className={`cursor-pointer transition-all duration-200 ease-in-out transform ${
+                                    isDropdownOpen 
+                                        ? 'text-gray-500 scale-110' 
+                                        : 'hover:text-gray-500 hover:scale-105'
+                                }`}
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            />
+                            <div className={`absolute top-8 right-0 bg-white p-4 w-40 rounded-md shadow-lg border border-gray-200 flex flex-col gap-2 font-medium text-base text-gray-600 z-50 transition-all duration-300 ease-in-out transform origin-top-right ${
+                                isDropdownOpen 
+                                    ? 'opacity-100 scale-100 translate-y-0' 
+                                    : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
+                            }`}>
+                                <Link 
+                                    to="/user-dashboard" 
+                                    className='cursor-pointer hover:text-gray-800 duration-200 py-1 px-2 rounded hover:bg-gray-50 transition-colors ease-in-out transform hover:scale-105'
+                                    onClick={() => setIsDropdownOpen(false)}
+                                >
+                                    View Profile
+                                </Link>
+                                <button 
+                                    onClick={handleLogout} 
+                                    className='cursor-pointer hover:text-gray-800 duration-200 text-left py-1 px-2 rounded hover:bg-gray-50 transition-colors ease-in-out transform hover:scale-105'
+                                >
+                                    Log Out
+                                </button>
                             </div>
                         </div>
                     ) : (
                         <div>
-                            <Link to="/signup" className='cursor-pointer'>Sign Up</Link>
-                            <Link to="/login" className='cursor-pointer ml-2'>Sign In</Link>
+                            <Link to="/signup" className='cursor-pointer hover:text-gray-500 transition-colors duration-200'>Sign Up</Link>
+                            <Link to="/login" className='cursor-pointer ml-2 hover:text-gray-500 transition-colors duration-200'>Sign In</Link>
                         </div>
                     )
                 }
