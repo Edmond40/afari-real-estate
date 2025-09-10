@@ -49,11 +49,13 @@ export default defineConfig(({ mode }) => {
             admin: [
               './src/adminPage/pages/AdminDashboard',
               './src/adminPage/pages/Agent',
-              './src/adminPage/pages/InquiriesPage',
-              './src/adminPage/pages/Listings',
+              './src/adminPage/pages/Inquiries',
+              './src/adminPage/pages/Properties',
               './src/adminPage/pages/Profile',
               './src/adminPage/pages/Reviews',
-              './src/adminPage/pages/Users'
+              './src/adminPage/pages/Settings',
+              './src/adminPage/pages/User',
+              './src/adminPage/pages/Appointments'
             ],
             // Group user-related components
             user: [
