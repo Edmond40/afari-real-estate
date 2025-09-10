@@ -36,8 +36,8 @@ export default defineConfig(({ mode }) => {
     // Load environment variables from .env files
     envDir: '.',
     build: {
-      // Set NODE_ENV to production during build
-      minify: isProduction ? 'terser' : false,
+      // Use esbuild minifier to avoid optional terser dependency
+      minify: isProduction ? 'esbuild' : false,
       sourcemap: !isProduction,
       chunkSizeWarningLimit: 1000, // Increase chunk size warning limit (in kB)
       rollupOptions: {
@@ -59,7 +59,7 @@ export default defineConfig(({ mode }) => {
             ],
             // Group user-related components
             user: [
-              './src/userPage/user-page/Profile',
+              './src/userPage/user-page/UserDashboard',
               './src/userPage/user-page/SavedProperties',
               './src/userPage/user-page/ViewingHistory',
               './src/userPage/user-page/Appointment',
