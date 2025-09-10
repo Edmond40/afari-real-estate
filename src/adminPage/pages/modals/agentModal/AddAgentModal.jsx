@@ -1,6 +1,7 @@
 import { UserPlus, X } from "lucide-react";
 import { useState } from 'react';
 import { toast } from 'react-toastify';
+import { motion } from 'framer-motion';
 import { useAgents } from '../../../../lib/hooks/useAgents';
 
 function AddAgentModal({onClose}){
