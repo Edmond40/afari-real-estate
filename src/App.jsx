@@ -112,7 +112,7 @@ function App() {
             <Route path='saved-properties' element={<SavedProperties/>}/>
             <Route path='viewing-history' element={<ViewingHistory/>}/>
             <Route path="profile" element={<UserProfile/>} />
-            <Route path="appointments" element={<AppointmentsPage />} />
+            <Route path="appointments" element={<Appointment />} />
             <Route path='notification' element={<Notification/>}/>
             <Route path='settings' element={<Settings/>}/>
           </Route>

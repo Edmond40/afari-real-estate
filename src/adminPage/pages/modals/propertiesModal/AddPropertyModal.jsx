@@ -1,5 +1,5 @@
 import { UserPlus, X } from "lucide-react";
-import { motion } from 'framer-motion'
+// import { motion } from 'framer-motion' // Not currently used
 import { useState } from 'react';
 import { useListings } from '../../../../lib/hooks/useListings';
 import { useAgents } from '../../../../lib/hooks/useAgents';

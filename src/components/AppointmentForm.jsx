@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'react-toastify';
+import { useUsers } from '../lib/hooks/useUsers';
+import { useListings } from '../lib/hooks/useListings';
 
 // Define the form validation schema
 const appointmentSchema = z.object({
@@ -23,6 +25,10 @@ const AppointmentForm = ({
   isAdmin = false
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Fetch users and listings data for dropdowns
+  const { users, loading: usersLoading } = useUsers({ limit: 100 });
+  const { listings, loading: listingsLoading } = useListings({ limit: 100 });
   
   const { 
     register, 
@@ -84,39 +90,53 @@ const AppointmentForm = ({
 
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* User ID */}
+          {/* User Selection */}
           <div>
             <label htmlFor="userId" className="block text-sm font-medium text-gray-700 mb-1">
-              User ID *
+              User *
             </label>
-            <input
+            <select
               id="userId"
-              type="text"
               {...register('userId')}
-              disabled={initialData?.id || isSubmitting}
+              disabled={initialData?.id || isSubmitting || usersLoading}
               className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${
                 errors.userId ? 'border-red-500' : ''
               } ${initialData?.id && 'bg-gray-100'}`}
-            />
+            >
+              <option value="">Select a user</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name} ({user.email})
+                </option>
+              ))}
+            </select>
+            {usersLoading && <p className="mt-1 text-sm text-gray-500">Loading users...</p>}
             {errors.userId && (
               <p className="mt-1 text-sm text-red-600">{errors.userId.message}</p>
             )}
           </div>
 
-          Listing ID
+          {/* Property Selection */}
           <div>
             <label htmlFor="listingId" className="block text-sm font-medium text-gray-700 mb-1">
-              Listing ID *
+              Property *
             </label>
-            <input
+            <select
               id="listingId"
-              type="text"
               {...register('listingId')}
-              disabled={initialData?.id || isSubmitting}
+              disabled={initialData?.id || isSubmitting || listingsLoading}
               className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${
                 errors.listingId ? 'border-red-500' : ''
               } ${initialData?.id && 'bg-gray-100'}`}
-            />
+            >
+              <option value="">Select a property</option>
+              {listings.map((listing) => (
+                <option key={listing.id} value={listing.id}>
+                  {listing.title} - {listing.address}
+                </option>
+              ))}
+            </select>
+            {listingsLoading && <p className="mt-1 text-sm text-gray-500">Loading properties...</p>}
             {errors.listingId && (
               <p className="mt-1 text-sm text-red-600">{errors.listingId.message}</p>
             )}

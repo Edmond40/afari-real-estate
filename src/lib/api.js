@@ -41,4 +41,5 @@ export const appointmentService = {
   deleteAppointment: (id) => api.put(`/appointments/${id}`, { status: 'CANCELLED' }),
 };
 
+export { api };
 export default api;

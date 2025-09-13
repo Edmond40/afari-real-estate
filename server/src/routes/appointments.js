@@ -18,11 +18,11 @@ router.use(requireAuth);
 
 // User routes - accessible to all authenticated users
 router.get('/', getAppointments);
+router.post('/:id/cancel', cancelAppointment); // Allow users to cancel their own appointments
 
 // Admin routes - require ADMIN role
 router.use(requireRole('ADMIN'));
 router.get('/stats', getAppointmentStats);
 router.put('/:id', updateAppointment);
-router.post('/:id/cancel', cancelAppointment);
 
 export default router;

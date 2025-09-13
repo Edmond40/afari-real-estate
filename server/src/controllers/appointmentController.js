@@ -28,14 +28,37 @@ export const validateAppointmentData = (data) => {
 // Get all appointments with pagination and filtering
 export const getAppointments = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status, userId, listingId, startDate, endDate } = req.query;
+    console.log('=== APPOINTMENT REQUEST DEBUG ===');
+    console.log('User:', req.user);
+    console.log('Query params:', req.query);
+    console.log('Headers:', req.headers);
+    
+    const { page = 1, limit = 10, status, userId, listingId, startDate, endDate, search } = req.query;
     const skip = (page - 1) * limit;
     const where = {};
 
     // Build where clause based on query params
     if (status) where.status = status;
-    if (userId) where.userId = parseInt(userId);
+    if (userId) {
+      where.userId = parseInt(userId);
+    } else if (req.user && req.user.role?.toUpperCase() !== 'ADMIN') {
+      // For non-admin users, only show their own appointments
+      where.userId = req.user.id;
+    }
+    // For admin users, don't filter by userId unless explicitly requested
     if (listingId) where.listingId = parseInt(listingId);
+    
+    // Add search functionality
+    if (search) {
+      where.OR = [
+        { user: { name: { contains: search, mode: 'insensitive' } } },
+        { user: { email: { contains: search, mode: 'insensitive' } } },
+        { listing: { title: { contains: search, mode: 'insensitive' } } },
+        { listing: { address: { contains: search, mode: 'insensitive' } } }
+      ];
+    }
+    
+    console.log('Final where clause:', where);
     
     if (startDate || endDate) {
       where.scheduledAt = {};
@@ -43,11 +66,12 @@ export const getAppointments = async (req, res) => {
       if (endDate) where.scheduledAt.lte = new Date(endDate);
     }
 
+    console.log('About to query database...');
     const [appointments, total] = await Promise.all([
       prisma.appointment.findMany({
         where,
         include: {
-          user: { select: { id: true, name: true, email: true } },
+          user: { select: { id: true, name: true, email: true, phone: true } },
           listing: { 
             select: { 
               id: true, 
@@ -69,6 +93,9 @@ export const getAppointments = async (req, res) => {
       prisma.appointment.count({ where })
     ]);
 
+    console.log('Found appointments:', appointments.length, 'for user:', req.user?.id);
+    console.log('Appointments data:', appointments);
+    
     res.json({
       success: true,
       data: appointments,
@@ -80,11 +107,14 @@ export const getAppointments = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('=== APPOINTMENT ERROR DEBUG ===');
     console.error('Error fetching appointments:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ 
       success: false,
       error: 'INTERNAL_SERVER_ERROR',
-      message: 'Failed to fetch appointments' 
+      message: 'Failed to fetch appointments',
+      details: error.message
     });
   }
 };
@@ -348,6 +378,15 @@ export const cancelAppointment = async (req, res) => {
         success: false,
         error: 'BAD_REQUEST',
         message: 'Appointment is already cancelled' 
+      });
+    }
+
+    // Check if user is the owner of the appointment or an admin
+    if (appointment.userId !== req.user.id && req.user.role?.toUpperCase() !== 'ADMIN') {
+      return res.status(403).json({
+        success: false,
+        error: 'FORBIDDEN',
+        message: 'You can only cancel your own appointments'
       });
     }
 

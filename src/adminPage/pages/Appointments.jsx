@@ -1,123 +1,108 @@
-import { useState, useEffect, useCallback } from 'react';
-import { format, parseISO } from 'date-fns';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
-import { Calendar, Edit, Trash2, X, Search } from 'lucide-react';
-import api from '../../lib/api';
-
-// Status colors for badges
-const STATUS_COLORS = {
-  SCHEDULED: 'bg-blue-100 text-blue-800',
-  CONFIRMED: 'bg-green-100 text-green-800',
-  COMPLETED: 'bg-purple-100 text-purple-800',
-  CANCELLED: 'bg-red-100 text-red-800',
-  NO_SHOW: 'bg-gray-100 text-gray-800',
-};
-
-const STATUS_OPTIONS = [
-  { value: 'all', label: 'All Statuses' },
-  { value: 'SCHEDULED', label: 'Scheduled' },
-  { value: 'CONFIRMED', label: 'Confirmed' },
-  { value: 'COMPLETED', label: 'Completed' },
-  { value: 'CANCELLED', label: 'Cancelled' },
-  { value: 'NO_SHOW', label: 'No Show' },
-];
+import { useAuth } from '../../hooks/useAuth';
+import { api } from '../../lib/api';
+import AddAppointmentModal from './modals/AddAppointmentModal';
 
 const Appointments = () => {
-  // State management
+  const { user } = useAuth();
   const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  
-  // Filter states
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('all');
-  const [selectedDate, setSelectedDate] = useState('');
-  
-  // Modal states
-  const [editingAppointment, setEditingAppointment] = useState(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [cancellationReason, setCancellationReason] = useState('');
-  const [cancellingId, setCancellingId] = useState(null);
-  
-  // Form state
-  const [formData, setFormData] = useState({
-    status: '',
-    agentNotes: '',
-    internalNotes: '',
-  });
-  
-  // Stats state
   const [stats, setStats] = useState({
     total: 0,
     scheduled: 0,
     confirmed: 0,
     completed: 0,
-    cancelled: 0,
+    cancelled: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  
+  // Filter states
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Modal states
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [editingAppointment, setEditingAppointment] = useState(null);
+  const [cancellingId, setCancellingId] = useState(null);
+  const [cancellationReason, setCancellationReason] = useState('');
+  
+  // Form data for editing
+  const [formData, setFormData] = useState({
+    status: '',
+    agentNotes: '',
+    internalNotes: ''
   });
 
-  // Fetch appointments data
+  // Fetch appointments with filters
   const fetchAppointments = useCallback(async () => {
+    if (!user?.id) {
+      console.log('No user ID, skipping fetch');
+      return;
+    }
+    
     try {
       setLoading(true);
       setError('');
       
+      console.log('=== ADMIN FETCH APPOINTMENTS DEBUG ===');
+      console.log('User:', user);
+      console.log('User role:', user.role);
+      console.log('User ID:', user.id);
+      
       const params = new URLSearchParams();
-      if (selectedStatus !== 'all') params.append('status', selectedStatus);
-      if (selectedDate) params.append('date', selectedDate);
+      if (selectedStatus) params.append('status', selectedStatus);
+      if (selectedDate) params.append('startDate', selectedDate);
       if (searchQuery) params.append('search', searchQuery);
       
+      console.log('Fetching appointments with params:', params.toString());
+      
       const [appointmentsRes, statsRes] = await Promise.all([
-        api.get(`/admin/appointments?${params.toString()}`),
-        api.get('/admin/appointments/stats')
+        api.get(`/appointments?${params.toString()}`),
+        api.get('/appointments/stats')
       ]);
       
+      console.log('Appointments response:', appointmentsRes.data);
+      console.log('Stats response:', statsRes.data);
+      
+      if (appointmentsRes.data?.success) {
       setAppointments(appointmentsRes.data.data || []);
+        console.log('Set appointments:', appointmentsRes.data.data);
+      } else {
+        console.error('Appointments response not successful:', appointmentsRes.data);
+        throw new Error(appointmentsRes.data?.message || 'Failed to fetch appointments');
+      }
+      
+      if (statsRes.data?.success) {
       setStats({
-        total: statsRes.data.total || 0,
-        scheduled: statsRes.data.scheduled || 0,
-        confirmed: statsRes.data.confirmed || 0,
-        completed: statsRes.data.completed || 0,
-        cancelled: statsRes.data.cancelled || 0,
-      });
+          total: statsRes.data.data.total || 0,
+          scheduled: statsRes.data.data.byStatus?.SCHEDULED || 0,
+          confirmed: statsRes.data.data.byStatus?.CONFIRMED || 0,
+          completed: statsRes.data.data.byStatus?.COMPLETED || 0,
+          cancelled: statsRes.data.data.byStatus?.CANCELLED || 0
+        });
+      }
     } catch (err) {
-      console.error('Error fetching data:', err);
-      const errorMessage = err.response?.data?.message || 'Failed to load data';
+      console.error('=== ADMIN FETCH ERROR ===');
+      console.error('Error fetching appointments:', err);
+      console.error('Error response:', err.response);
+      console.error('Error message:', err.message);
+      const errorMessage = err.response?.data?.message || 'Failed to load appointments';
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
-  }, [selectedStatus, selectedDate, searchQuery]);
+  }, [selectedStatus, selectedDate, searchQuery, user?.id]);
 
-  // Initial data fetch
   useEffect(() => {
     fetchAppointments();
   }, [fetchAppointments]);
 
-  // Event handlers
-  const handleStatusChange = (e) => {
-    setSelectedStatus(e.target.value);
-  };
-
-  const handleDateChange = (e) => {
-    setSelectedDate(e.target.value);
-  };
-
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
-
-  const handleEditClick = (appointment) => {
-    setEditingAppointment(appointment);
-    setFormData({
-      status: appointment.status,
-      agentNotes: appointment.agentNotes || '',
-      internalNotes: appointment.internalNotes || '',
-    });
-    setShowEditModal(true);
-  };
-
+  // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -126,14 +111,21 @@ const Appointments = () => {
     }));
   };
 
+  // Handle appointment update
   const handleUpdateAppointment = async () => {
     if (!editingAppointment) return;
     
+    if (!formData.status) {
+      toast.error('Please select a status');
+      return;
+    }
+    
     try {
       setLoading(true);
-      await api.put(`/admin/appointments/${editingAppointment.id}`, formData);
+      await api.put(`/appointments/${editingAppointment.id}`, formData);
       toast.success('Appointment updated successfully');
       setShowEditModal(false);
+      setFormData({ status: '', agentNotes: '', internalNotes: '' });
       await fetchAppointments();
     } catch (err) {
       console.error('Error updating appointment:', err);
@@ -144,12 +136,23 @@ const Appointments = () => {
     }
   };
 
+  // Handle appointment cancellation
   const handleCancelAppointment = async () => {
     if (!cancellingId) return;
     
+    if (!cancellationReason.trim()) {
+      toast.error('Please provide a reason for cancellation');
+      return;
+    }
+
+    if (cancellationReason.length < 10) {
+      toast.error('Please provide a more detailed reason (at least 10 characters)');
+      return;
+    }
+    
     try {
       setLoading(true);
-      await api.post(`/admin/appointments/${cancellingId}/cancel`, { reason: cancellationReason });
+      await api.post(`/appointments/${cancellingId}/cancel`, { reason: cancellationReason });
       
       toast.success('Appointment cancelled successfully');
       setShowCancelModal(false);
@@ -165,329 +168,342 @@ const Appointments = () => {
     }
   };
 
-  // Helper functions
+  // Open edit modal
+  const openEditModal = (appointment) => {
+    setEditingAppointment(appointment);
+    setFormData({
+      status: appointment.status || '',
+      agentNotes: appointment.agentNotes || '',
+      internalNotes: appointment.internalNotes || ''
+    });
+    setShowEditModal(true);
+  };
+
+  // Open cancel modal
   const openCancelModal = (appointmentId) => {
     setCancellingId(appointmentId);
     setShowCancelModal(true);
   };
 
-  const filteredAppointments = appointments.filter(appointment => {
-    if (selectedStatus !== 'all' && appointment.status !== selectedStatus) {
-      return false;
-    }
-    
-    if (selectedDate) {
-      const appointmentDate = format(parseISO(appointment.scheduledAt), 'yyyy-MM-dd');
-      if (appointmentDate !== selectedDate) return false;
-    }
-    
-    if (searchQuery) {
-      const searchLower = searchQuery.toLowerCase();
-      return (
-        (appointment.user?.name?.toLowerCase().includes(searchLower)) ||
-        (appointment.listing?.title?.toLowerCase().includes(searchLower)) ||
-        (appointment.id?.toString().includes(searchQuery))
-      );
-    }
-    
-    return true;
-  });
-
-  const formatDate = (dateString) => {
+  // Format date and time
+  const formatDateTime = (dateString) => {
     try {
-      const date = parseISO(dateString);
-      return format(date, 'MMM d, yyyy h:mm a');
+      const date = new Date(dateString);
+      return {
+        date: date.toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }),
+        time: date.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        })
+      };
     } catch (error) {
-      console.error('Error formatting date:', error);
-      return 'Invalid date';
+      return { date: 'Invalid Date', time: 'Invalid Time' };
     }
   };
 
-  const getTimeRemaining = (scheduledAt) => {
-    try {
-      if (!scheduledAt) return 'N/A';
-      
-      const now = new Date();
-      const scheduled = new Date(scheduledAt);
-      const diffInMinutes = Math.round((scheduled - now) / (1000 * 60));
-      
-      if (isNaN(diffInMinutes)) return 'Invalid date';
-      
-      if (diffInMinutes < 0) {
-        return 'Past';
-      } else if (diffInMinutes < 60) {
-        return `In ${diffInMinutes} min`;
-      } else if (diffInMinutes < 24 * 60) {
-        const hours = Math.floor(diffInMinutes / 60);
-        return `In ${hours} ${hours === 1 ? 'hour' : 'hours'}`;
-      } else {
-        const days = Math.floor(diffInMinutes / (60 * 24));
-        return `In ${days} ${days === 1 ? 'day' : 'days'}`;
-      }
-    } catch (error) {
-      console.error('Error calculating time remaining:', error);
-      return 'Error';
-    }
+  // Get status badge styling
+  const getStatusBadge = (status) => {
+    const statusStyles = {
+      SCHEDULED: 'bg-blue-100 text-blue-800',
+      CONFIRMED: 'bg-green-100 text-green-800',
+      COMPLETED: 'bg-gray-100 text-gray-800',
+      CANCELLED: 'bg-red-100 text-red-800',
+      NO_SHOW: 'bg-yellow-100 text-yellow-800'
+    };
+    
+    return statusStyles[status] || 'bg-gray-100 text-gray-800';
   };
 
-  // Render functions
-  const renderStats = () => (
-    <div className="grid grid-cols-1 gap-5 mt-6 sm:grid-cols-2 lg:grid-cols-5">
-      {Object.entries(stats).map(([key, value]) => (
-        <div key={key} className="px-4 py-5 overflow-hidden bg-white rounded-lg shadow sm:p-6">
-          <dt className="text-sm font-medium text-gray-500 truncate">
-            {key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()}
-          </dt>
-          <dd className="mt-1 text-3xl font-semibold text-gray-900">{value}</dd>
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderFilters = () => (
-    <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
-      <div className="flex-1">
-        <label htmlFor="search" className="sr-only">Search</label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <Search className="w-5 h-5 text-gray-400" />
-          </div>
-          <input
-            type="text"
-            id="search"
-            className="block w-full py-2 pl-10 pr-3 text-sm border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="Search appointments..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-          />
-        </div>
+  if (loading && appointments.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
-      <div className="w-full sm:w-48">
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto p-6">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Appointments Management</h1>
+            <p className="text-gray-600">Manage all property viewing appointments</p>
+          </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            New Appointment
+          </button>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
+            <div className="text-sm text-gray-600">Total</div>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <div className="text-2xl font-bold text-blue-600">{stats.scheduled}</div>
+            <div className="text-sm text-gray-600">Scheduled</div>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <div className="text-2xl font-bold text-green-600">{stats.confirmed}</div>
+            <div className="text-sm text-gray-600">Confirmed</div>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <div className="text-2xl font-bold text-gray-600">{stats.completed}</div>
+            <div className="text-sm text-gray-600">Completed</div>
+    </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <div className="text-2xl font-bold text-red-600">{stats.cancelled}</div>
+            <div className="text-sm text-gray-600">Cancelled</div>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="bg-white p-4 rounded-lg shadow-sm border mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
         <select
-          id="status"
-          className="block w-full py-2 pl-3 pr-10 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
           value={selectedStatus}
-          onChange={handleStatusChange}
-        >
-          {STATUS_OPTIONS.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Statuses</option>
+                <option value="SCHEDULED">Scheduled</option>
+                <option value="CONFIRMED">Confirmed</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="CANCELLED">Cancelled</option>
+                <option value="NO_SHOW">No Show</option>
         </select>
       </div>
-      <div className="w-full sm:w-48">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
         <input
           type="date"
-          className="block w-full py-2 pl-3 pr-10 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
           value={selectedDate}
-          onChange={handleDateChange}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+              <input
+                type="text"
+                placeholder="Search by property or user..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
     </div>
-  );
-
-  const renderAppointmentsTable = () => {
-    if (loading) {
-      return (
-        <div className="flex items-center justify-center p-12">
-          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <span className="ml-2 text-gray-600">Loading appointments...</span>
         </div>
-      );
-    }
-
-    if (error) {
-      return (
-        <div className="p-4 text-center text-red-600 bg-red-100 rounded-md">
-          {error}
-        </div>
-      );
-    }
-
-    if (filteredAppointments.length === 0) {
-      return (
-        <div className="p-8 text-center text-gray-500 bg-gray-50 rounded-lg">
-          <p>No appointments found matching your criteria.</p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-        <table className="min-w-full divide-y divide-gray-300">
-          <thead className="bg-gray-50">
-            <tr>
-              <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
-                ID
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                Client
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                Property
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                Date & Time
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                Status
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                Time Left
-              </th>
-              <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                <span className="sr-only">Actions</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredAppointments.map((appointment) => (
-              <tr key={appointment.id}>
-                <td className="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 whitespace-nowrap sm:pl-6">
-                  {appointment.id}
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-500 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 w-10 h-10">
-                      <img 
-                        className="w-10 h-10 rounded-full" 
-                        src={appointment.user?.image || '/default-avatar.png'} 
-                        alt={appointment.user?.name || 'User'}
-                      />
-                    </div>
-                    <div className="ml-4">
-                      <div className="font-medium text-gray-900">{appointment.user?.name || 'N/A'}</div>
-                      <div className="text-gray-500">{appointment.user?.email || ''}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-500">
-                  <div className="font-medium text-gray-900">{appointment.listing?.title || 'N/A'}</div>
-                  <div className="text-gray-500">{appointment.listing?.address || ''}</div>
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-500 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <Calendar className="flex-shrink-0 mr-2 text-gray-400 w-4 h-4" />
-                    {formatDate(appointment.scheduledAt)}
-                  </div>
-                </td>
-                <td className="px-3 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[appointment.status] || 'bg-gray-100 text-gray-800'}`}>
-                    {appointment.status?.toLowerCase().replace('_', ' ') || 'N/A'}
-                  </span>
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-500 whitespace-nowrap">
-                  {getTimeRemaining(appointment.scheduledAt)}
-                </td>
-                <td className="relative py-4 pl-3 pr-4 text-sm font-medium text-right whitespace-nowrap sm:pr-6">
-                  <div className="flex items-center space-x-2">
-                    <button
-                      type="button"
-                      onClick={() => handleEditClick(appointment)}
-                      className="text-indigo-600 hover:text-indigo-900"
-                    >
-                      <Edit className="w-5 h-5" />
-                      <span className="sr-only">Edit</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => openCancelModal(appointment.id)}
-                      className="text-red-600 hover:text-red-900"
-                      disabled={appointment.status === 'CANCELLED'}
-                    >
-                      <Trash2 className="w-5 h-5" />
-                      <span className="sr-only">Cancel</span>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
-    );
-  };
 
-  const renderEditModal = () => (
-    <div className="fixed inset-0 z-10 overflow-y-auto">
-      <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-          <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="text-red-600 font-semibold mb-2">Error Loading Appointments</div>
+          <p className="text-red-700">{error}</p>
+          <button
+            onClick={fetchAppointments}
+            className="mt-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Try Again
+          </button>
         </div>
+      )}
+
+      {/* Appointments List */}
+      <div className="bg-white rounded-lg shadow-sm border">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">Appointments</h2>
+        </div>
+        
+        {appointments.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-400 text-6xl mb-4">📅</div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No Appointments Found</h3>
+            <p className="text-gray-600">No appointments match your current filters.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-200">
+            {appointments.map((appointment) => {
+              const { date, time } = formatDateTime(appointment.scheduledAt);
+    return (
+                <div key={appointment.id} className="p-6 hover:bg-gray-50">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {appointment.listing?.title || 'Property Viewing'}
+                      </h3>
+                      <p className="text-gray-600">
+                        {appointment.listing?.address || 'Address not available'}
+                      </p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Client: {appointment.user?.name || 'Unknown'} ({appointment.user?.email || 'No email'})
+                      </p>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadge(appointment.status)}`}>
+                      {appointment.status}
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Date</p>
+                      <p className="text-gray-900">{date}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Time</p>
+                      <p className="text-gray-900">{time}</p>
+                    </div>
+                  </div>
+                  
+                  {appointment.notes && (
+                    <div className="mb-4">
+                      <p className="text-sm font-medium text-gray-500">Client Notes</p>
+                      <p className="text-gray-900">{appointment.notes}</p>
+                    </div>
+                  )}
+                  
+                  {appointment.agentNotes && (
+                    <div className="mb-4">
+                      <p className="text-sm font-medium text-gray-500">Agent Notes</p>
+                      <p className="text-gray-900">{appointment.agentNotes}</p>
+                    </div>
+                  )}
+                  
+                  {appointment.internalNotes && (
+                    <div className="mb-4">
+                      <p className="text-sm font-medium text-gray-500">Internal Notes</p>
+                      <p className="text-gray-900">{appointment.internalNotes}</p>
+                  </div>
+                  )}
+                  
+                  <div className="flex justify-end space-x-2">
+                    <button
+                      onClick={() => openEditModal(appointment)}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Edit
+                    </button>
+                    {appointment.status !== 'CANCELLED' && appointment.status !== 'COMPLETED' && (
+                    <button
+                      onClick={() => openCancelModal(appointment.id)}
+                        className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Add Appointment Modal */}
+      {showAddModal && (
+        <AddAppointmentModal
+          isOpen={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          onSuccess={() => {
+            setShowAddModal(false);
+            fetchAppointments();
+          }}
+        />
+      )}
+
+      {/* Edit Appointment Modal */}
+      {showEditModal && editingAppointment && (
+        <div className="fixed z-10 inset-0 overflow-y-auto" role="dialog" aria-modal="true">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+              <div className="absolute inset-0 bg-gray-500 opacity-75" onClick={() => setShowEditModal(false)}></div>
+        </div>
+
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
           &#8203;
         </span>
-        <div className="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <div className="px-4 pt-5 pb-4 bg-white sm:p-6 sm:pb-4">
-            <div className="sm:flex sm:items-start">
-              <div className="w-full mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                <h3 className="text-lg font-medium leading-6 text-gray-900">
+
+            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div>
+                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
                   Edit Appointment
                 </h3>
-                <div className="mt-4 space-y-4">
+                
+                <div className="space-y-4">
                   <div>
-                    <label htmlFor="status" className="block text-sm font-medium text-gray-700">
-                      Status
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                     <select
-                      id="status"
                       name="status"
-                      className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                       value={formData.status}
                       onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      {['SCHEDULED', 'CONFIRMED', 'COMPLETED', 'NO_SHOW'].map((status) => (
-                        <option key={status} value={status}>
-                          {status.toLowerCase().replace('_', ' ')}
-                        </option>
-                      ))}
+                      <option value="">Select Status</option>
+                      <option value="SCHEDULED">Scheduled</option>
+                      <option value="CONFIRMED">Confirmed</option>
+                      <option value="COMPLETED">Completed</option>
+                      <option value="CANCELLED">Cancelled</option>
+                      <option value="NO_SHOW">No Show</option>
                     </select>
                   </div>
+                  
                   <div>
-                    <label htmlFor="agentNotes" className="block text-sm font-medium text-gray-700">
-                      Agent Notes
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Agent Notes</label>
                     <textarea
-                      id="agentNotes"
                       name="agentNotes"
-                      rows={3}
-                      className="block w-full mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      rows="3"
                       value={formData.agentNotes}
                       onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Add agent notes..."
                     />
                   </div>
+                  
                   <div>
-                    <label htmlFor="internalNotes" className="block text-sm font-medium text-gray-700">
-                      Internal Notes
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Internal Notes</label>
                     <textarea
-                      id="internalNotes"
                       name="internalNotes"
-                      rows={3}
-                      className="block w-full mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      rows="3"
                       value={formData.internalNotes}
                       onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Add internal notes..."
                     />
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-          <div className="px-4 py-3 bg-gray-50 sm:px-6 sm:flex sm:flex-row-reverse">
+              
+              <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
             <button
               type="button"
-              className="inline-flex justify-center w-full px-4 py-2 text-base font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-2 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleUpdateAppointment}
               disabled={loading}
             >
-              {loading ? 'Saving...' : 'Save Changes'}
+                  {loading ? 'Updating...' : 'Update Appointment'}
             </button>
             <button
               type="button"
-              className="inline-flex justify-center w-full px-4 py-2 mt-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-              onClick={() => setShowEditModal(false)}
-              disabled={loading}
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setFormData({ status: '', agentNotes: '', internalNotes: '' });
+                  }}
             >
               Cancel
             </button>
@@ -495,102 +511,67 @@ const Appointments = () => {
         </div>
       </div>
     </div>
-  );
+      )}
 
-  const renderCancelModal = () => (
-    <div className="fixed inset-0 z-10 overflow-y-auto">
-      <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      {/* Cancel Appointment Modal */}
+      {showCancelModal && (
+        <div className="fixed z-10 inset-0 overflow-y-auto" role="dialog" aria-modal="true">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-          <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+              <div className="absolute inset-0 bg-gray-500 opacity-75" onClick={() => setShowCancelModal(false)}></div>
         </div>
+
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
           &#8203;
         </span>
-        <div className="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <div className="px-4 pt-5 pb-4 bg-white sm:p-6 sm:pb-4">
-            <div className="sm:flex sm:items-start">
-              <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto bg-red-100 rounded-full sm:mx-0 sm:h-10 sm:w-10">
-                <X className="w-6 h-6 text-red-600" />
-              </div>
-              <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                <h3 className="text-lg font-medium leading-6 text-gray-900">
+
+            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div>
+                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
                   Cancel Appointment
                 </h3>
-                <div className="mt-2">
-                  <p className="text-sm text-gray-500">
-                    Are you sure you want to cancel this appointment? This action cannot be undone.
-                  </p>
-                </div>
-                <div className="mt-4">
-                  <label htmlFor="cancellationReason" className="block text-sm font-medium text-gray-700">
-                    Reason for cancellation
-                  </label>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Reason for cancellation (required)</label>
                   <textarea
-                    id="cancellationReason"
-                    rows={3}
-                    className="block w-full mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    rows="3"
                     value={cancellationReason}
                     onChange={(e) => setCancellationReason(e.target.value)}
-                    placeholder="Please provide a reason for cancellation"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Please provide a reason for cancellation..."
+                    maxLength={500}
                   />
+                  <p className="mt-1 text-xs text-gray-500">
+                    {cancellationReason.length}/500 characters
+                  </p>
                 </div>
               </div>
-            </div>
-          </div>
-          <div className="px-4 py-3 bg-gray-50 sm:px-6 sm:flex sm:flex-row-reverse">
+              
+              <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
             <button
               type="button"
-              className="inline-flex justify-center w-full px-4 py-2 text-base font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:col-start-2 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleCancelAppointment}
-              disabled={loading || !cancellationReason.trim()}
+                  disabled={loading || !cancellationReason.trim() || cancellationReason.length < 10}
             >
-              {loading ? 'Cancelling...' : 'Cancel Appointment'}
+                  {loading ? 'Cancelling...' : 'Yes, cancel appointment'}
             </button>
             <button
               type="button"
-              className="inline-flex justify-center w-full px-4 py-2 mt-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm"
               onClick={() => {
                 setShowCancelModal(false);
                 setCancellationReason('');
+                    setCancellingId(null);
               }}
-              disabled={loading}
             >
-              Keep Appointment
+                  Cancel
             </button>
           </div>
         </div>
       </div>
     </div>
-  );
-
-  // Main render
-  return (
-    <div className="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-2xl font-bold leading-tight text-gray-900">Appointments</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Manage property viewing appointments and update their status.
-          </p>
-        </div>
-      </div>
-
-      {/* Stats */}
-      {renderStats()}
-
-      {/* Filters */}
-      <div className="mt-8">
-        {renderFilters()}
-      </div>
-
-      {/* Appointments Table */}
-      <div className="mt-8">
-        {renderAppointmentsTable()}
-      </div>
-
-      {/* Modals */}
-      {showEditModal && renderEditModal()}
-      {showCancelModal && renderCancelModal()}
+      )}
     </div>
   );
 };
